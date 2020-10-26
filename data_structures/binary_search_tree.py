@@ -136,7 +136,7 @@ class TreeMap(LinkedBinaryTree, MapBase):
             self._rebalance_access(p)  # hook for balanced tree subclasses
             if k != p.key():
                 raise KeyError('Key Error: ' + repr(k))
-            return p.value()
+            return p.key()
 
     def __setitem__(self, k, v):
         """Assign value v to key k, overwriting existing value if present."""
@@ -187,7 +187,7 @@ class TreeMap(LinkedBinaryTree, MapBase):
             return None
         else:
             p = self.first()
-            return (p.key(), p.value())
+            return p.key()
 
     def find_max(self):
         """Return (key,value) pair with maximum key (or None if empty)."""
@@ -195,7 +195,7 @@ class TreeMap(LinkedBinaryTree, MapBase):
             return None
         else:
             p = self.last()
-            return (p.key(), p.value())
+            return p.key()
 
     def find_le(self, k):
         """Return (key,value) pair with greatest key less than or equal to k.
@@ -208,7 +208,7 @@ class TreeMap(LinkedBinaryTree, MapBase):
             p = self.find_position(k)
             if k < p.key():
                 p = self.before(p)
-            return (p.key(), p.value()) if p is not None else None
+            return p.key() if p is not None else None
 
     def find_lt(self, k):
         """Return (key,value) pair with greatest key strictly less than k.
@@ -221,7 +221,7 @@ class TreeMap(LinkedBinaryTree, MapBase):
             p = self.find_position(k)
             if not p.key() < k:
                 p = self.before(p)
-            return (p.key(), p.value()) if p is not None else None
+            return p.key() if p is not None else None
 
     def find_ge(self, k):
         """Return (key,value) pair with least key greater than or equal to k.
@@ -234,7 +234,7 @@ class TreeMap(LinkedBinaryTree, MapBase):
             p = self.find_position(k)  # may not find exact match
             if p.key() < k:  # p's key is too small
                 p = self.after(p)
-            return (p.key(), p.value()) if p is not None else None
+            return p.key() if p is not None else None
 
     def find_gt(self, k):
         """Return (key,value) pair with least key strictly greater than k.
@@ -247,7 +247,7 @@ class TreeMap(LinkedBinaryTree, MapBase):
             p = self.find_position(k)
             if not k < p.key():
                 p = self.after(p)
-            return (p.key(), p.value()) if p is not None else None
+            return p.key() if p is not None else None
 
     def find_range(self, start, stop):
         """Iterate all (key,value) pairs such that start <= key < stop.
@@ -264,7 +264,7 @@ class TreeMap(LinkedBinaryTree, MapBase):
                 if p.key() < start:
                     p = self.after(p)
             while p is not None and (stop is None or p.key() < stop):
-                yield (p.key(), p.value())
+                yield p.key()
                 p = self.after(p)
 
     # --------------------- hooks used by subclasses to balance a tree ---------------------
