@@ -61,6 +61,7 @@ class Currency:
     def num_denomination(self):
         return len(self._denominations)
 
+
 cur = Currency("EUR")
 cur.add_denomination(1)
 cur.add_denomination(3)
