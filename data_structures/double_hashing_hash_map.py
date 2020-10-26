@@ -24,9 +24,13 @@ class DoubleHashingHashMap(HashMapBase):
 
     def __setitem__(self, k, v):
         if self._n > len(self._table) // 2:  # keep load factor <= 0.5
+            # resize must be called at the biggest prime in segmented_sieve(len(self._table), 2 * len(self._table) - 1)
             self._resize(2 * len(self._table) - 1)  # number 2^x - 1 is often prime
 
     def __delitem__(self, k):
+        pass
+
+    def __iter__(self):
         pass
 
     def _bucket_getitem(self, j, k):
@@ -36,7 +40,4 @@ class DoubleHashingHashMap(HashMapBase):
         pass
 
     def _bucket_delitem(self, j, k):
-        pass
-
-    def __iter__(self):
         pass
