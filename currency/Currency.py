@@ -12,6 +12,14 @@ class Currency:
         self._denominations = RedBlackTreeMap()
         self._changes = {}  # todo change to doublehashinghashmap
 
+    def add_denomination(self, value):
+        if value in self._denominations:
+            raise ValueError(str(value) + " is already present")
 
+        self._denominations[value] = value
+        return
+
+    def del_denomination(self, value):
+        del self._denominations[value]
 
 
