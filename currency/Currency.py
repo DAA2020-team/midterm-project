@@ -27,9 +27,19 @@ class Currency:
             raise ValueError("No denomination present")
         if value is None:
             return self._denominations.find_min()
-        v = self._denominations.find_ge(value)
+        v = self._denominations.find_gt(value)
         if v is None:
-            raise ValueError("No denomination greater than " + str(value) + "present")
+            raise ValueError("No denomination greater than " + str(value) + " present")
+        return v
+
+    def max_denomination(self, value=None):
+        if self._denominations.is_empty():
+            raise ValueError("No denomination present")
+        if value is None:
+            return self._denominations.find_max()
+        v = self._denominations.find_lt(value)
+        if v is None:
+            raise ValueError("No denomination smaller than " + str(value) + " present")
         return v
 
 
@@ -41,5 +51,6 @@ cur.add_denomination(7)
 
 cur.del_denomination(3)
 
-print(cur.min_denomination(0))
+print(cur.min_denomination(1))
+print(cur.max_denomination(5))
 
