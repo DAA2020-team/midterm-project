@@ -49,6 +49,17 @@ class Currency:
             raise ValueError(str(value) + " is not a denomination")
         return self._denominations.find_gt(value)
 
+    def prev_denomination(self, value):
+        self._raise_ex_if_den_empty()
+        if value not in self._denominations:
+            raise ValueError(str(value) + " is not a denomination")
+        return self._denominations.find_lt(value)
+
+    def has_denomination(self):
+        return not self._denominations.is_empty()
+
+    def num_denomination(self):
+        return len(self._denominations)
 
 cur = Currency("EUR")
 cur.add_denomination(1)
@@ -62,3 +73,7 @@ print(cur.min_denomination(1))
 print(cur.max_denomination(5))
 
 print(cur.next_denomination(7))
+print(cur.prev_denomination(1))
+
+print(cur.has_denomination())
+print(cur.num_denomination())
