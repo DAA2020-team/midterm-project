@@ -13,9 +13,11 @@ def main():
 
     my_map[code] = 42
     my_map._bucket_setitem(12, "USD", 43)
-    my_map._bucket_setitem(15, "JPY", 44)
+    my_map._bucket_setitem(12, "JPY", 44)
 
     print(my_map)
+
+    print(my_map.get_collisions())
 
 
 if __name__ == '__main__':

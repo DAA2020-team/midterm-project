@@ -5,9 +5,11 @@ from .map_base import MapBase
 
 class DoubleHashingHashMap(HashMapBase):
 
-    __slots__ = '_z', '_q'
+    __slots__ = '_z', '_q', '_collision_counter'
 
     _AVAIL = object()  # sentinal marks locations of previous deletions
+
+    # --------------- NESTED _Item CLASS ---------------
 
     class _Item(MapBase._Item):
 
@@ -27,6 +29,7 @@ class DoubleHashingHashMap(HashMapBase):
         super().__init__(cap=cap, p=p)
         self._z = z
         self._q = q
+        self._collision_counter = 0
 
     # --------------- UTILITY METHODS ---------------
 
@@ -83,6 +86,9 @@ class DoubleHashingHashMap(HashMapBase):
     def capacity(self):
         return len(self._table)
 
+    def get_collisions(self):
+        return self._collision_counter
+
     # --------------- PRIVATE METHODS ---------------
 
     def _is_available(self, j):
@@ -106,6 +112,7 @@ class DoubleHashingHashMap(HashMapBase):
             elif k == self._table[j]._key:
                 return True, j  # found a match
             j = (j + self._d(k)) % self.capacity()  # keep looking (cyclically)
+            self._collision_counter += 1  # collision found. increment counter
 
     def _bucket_getitem(self, j, k):
         pass
