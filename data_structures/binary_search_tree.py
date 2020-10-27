@@ -26,6 +26,11 @@ from .map_base import MapBase
 class TreeMap(LinkedBinaryTree, MapBase):
     """Sorted map implementation using a binary search tree."""
 
+    def __init__(self):
+        super().__init__()
+        self._min = None
+        self._max = None
+
     # ---------------------------- override Position class ----------------------------
     class Position(LinkedBinaryTree.Position):
         def key(self):
@@ -140,6 +145,10 @@ class TreeMap(LinkedBinaryTree, MapBase):
 
     def __setitem__(self, k, v):
         """Assign value v to key k, overwriting existing value if present."""
+        if self._min is None or k < self._min:
+            self._min = k
+        elif self._max is None or k > self._max:
+            self._max = k
         if self.is_empty():
             leaf = self._add_root(self._Item(k, v))  # from LinkedBinaryTree
         else:
@@ -161,6 +170,18 @@ class TreeMap(LinkedBinaryTree, MapBase):
         if not self.is_empty():
             p = self._subtree_search(self.root(), k)
             if k == p.key():
+                if k == self._min:
+                    try:
+                        self._min = self.after(p).key()
+                    except AttributeError:
+                        self._min = None
+
+                if k == self._max:
+                    try:
+                        self._max = self.before(p).key()
+                    except AttributeError:
+                        self._max = None
+
                 self.delete(p)  # rely on positional version
                 return  # successful deletion complete
             self._rebalance_access(p)  # hook for balanced tree subclasses
@@ -186,16 +207,14 @@ class TreeMap(LinkedBinaryTree, MapBase):
         if self.is_empty():
             return None
         else:
-            p = self.first()
-            return p.key()
+            return self._min
 
     def find_max(self):
         """Return (key,value) pair with maximum key (or None if empty)."""
         if self.is_empty():
             return None
         else:
-            p = self.last()
-            return p.key()
+            return self._max
 
     def find_le(self, k):
         """Return (key,value) pair with greatest key less than or equal to k.
