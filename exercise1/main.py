@@ -1,14 +1,21 @@
 from data_structures.double_hashing_hash_map import DoubleHashingHashMap
 from exercise1.utils import segmented_sieve
 
+from iso4217 import Currency as cur
+
 
 def main():
     my_map = DoubleHashingHashMap()
 
-    # All the countries in the world are 195; the largest prime bigger than 195 is 197
-    n = 197
+    code = "EUR"
+    if code not in [currency.code for currency in cur]:
+        raise TypeError
 
-    primes = segmented_sieve(1, 197)
+    my_map[code] = 42
+    my_map._bucket_setitem(12, "USD", 43)
+    my_map._bucket_setitem(15, "JPY", 44)
+
+    print(my_map)
 
 
 if __name__ == '__main__':
