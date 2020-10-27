@@ -56,11 +56,17 @@ class Currency:
             raise ValueError(str(value) + " is not a denomination")
         return self._denominations.find_lt(value)
 
-    def has_denomination(self):
+    def has_denominations(self):
         return not self._denominations.is_empty()
 
-    def num_denomination(self):
+    def num_denominations(self):
         return len(self._denominations)
+
+    def clear_denominations(self):
+        self._denominations = AVLTreeMap()
+
+    def iter_denominations(self, reverse=False):
+        return self._denominations.__iter__() if not reverse else self._denominations.__reversed__()
 
 
 cur = Currency("EUR")
@@ -77,5 +83,16 @@ print(cur.max_denomination(5))
 print(cur.next_denomination(7))
 print(cur.prev_denomination(1))
 
-print(cur.has_denomination())
-print(cur.num_denomination())
+print(cur.has_denominations())
+print(cur.num_denominations())
+
+cur.clear_denominations()
+print()
+for i in range(1, 16):
+    cur.add_denomination(i*i)
+
+for i in cur.iter_denominations():
+    print(i)
+for i in cur.iter_denominations(True):
+    print(i)
+
