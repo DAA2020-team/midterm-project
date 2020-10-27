@@ -1,5 +1,6 @@
-from currency import utils
-from data_structures.red_black_tree import RedBlackTreeMap
+from data_structures.avl_tree import AVLTreeMap
+from data_structures.hash_map_base import HashMapBase
+from . import utils
 
 
 class Currency:
@@ -9,8 +10,8 @@ class Currency:
             raise ValueError("code is not a valid ISO4217 code")
 
         self._code = code
-        self._denominations = RedBlackTreeMap()
-        self._changes = {}  # todo change to doublehashinghashmap
+        self._denominations = AVLTreeMap()
+        self._changes = HashMapBase() # todo change to doublehashinghashmap
 
     def _raise_ex_if_den_empty(self):
         if self._denominations.is_empty():
