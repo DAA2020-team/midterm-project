@@ -1,10 +1,21 @@
 from .hash_map_base import HashMapBase
-from exercise1.utils import bitify
+from .map_base import MapBase
+
+from exercise1.utils import bitify, primes_in_range
 
 
 class DoubleHashingHashMap(HashMapBase):
 
-    __slots__ = '_z', '_q'
+    __slots__ = '_z', '_q', '_collision_counter'
+
+    _AVAIL = object()  # sentinal marks locations of previous deletions
+
+    # --------------- NESTED _Item CLASS ---------------
+
+    class _Item(MapBase._Item):
+
+        def __str__(self):
+            return "{%s: %s}" % (self._key, self._value)
 
     # --------------- CONSTRUCTOR ---------------
 
@@ -19,6 +30,7 @@ class DoubleHashingHashMap(HashMapBase):
         super().__init__(cap=cap, p=p)
         self._z = z
         self._q = q
+        self._collision_counter = 0
 
     # --------------- UTILITY METHODS ---------------
 
@@ -49,32 +61,80 @@ class DoubleHashingHashMap(HashMapBase):
     # --------------- PUBLIC METHODS ---------------
 
     def __getitem__(self, k):
-        pass
+        j = self._h(k)
+        return self._bucket_getitem(j, k)  # may raise KeyError
 
     def __setitem__(self, k, v):
-        if self._n > len(self._table) // 2:  # keep load factor <= 0.5
-            # resize must be called at the biggest prime in segmented_sieve(len(self._table), 2 * len(self._table) - 1)
-            self._resize(2 * self.capacity() - 1)  # number 2^x - 1 is often prime
+        j = self._h(k)
+        self._bucket_setitem(j, k, v)  # subroutine maintains self._n
+        if self._n > self.capacity() // 2:  # keep load factor <= 0.5
+            self._resize(primes_in_range(self.capacity(), 2 * self.capacity() - 1)[-1])
 
     def __delitem__(self, k):
-        pass
+        j = self._h(k)
+        self._bucket_delitem(j, k)  # may raise KeyError
+        self._n -= 1
 
     def __iter__(self):
-        pass
+        for j in range(len(self._table)):  # scan entire table
+            if not self._is_available(j):
+                yield self._table[j]._key
+
+    def items(self):
+        for j in range(len(self._table)):  # scan entire table
+            if not self._is_available(j):
+                yield self._table[j]._key, self._table[j]._value
 
     def __str__(self):
-        pass
+        return str([str(item) for item in self._table if item is not None])
 
     def capacity(self):
         return len(self._table)
 
+    def get_collisions(self):
+        return self._collision_counter
+
     # --------------- PRIVATE METHODS ---------------
 
+    def _is_available(self, j):
+        """Return True if index j is available in table."""
+        return self._table[j] is None or self._table[j] is DoubleHashingHashMap._AVAIL
+
+    def _find_slot(self, j, k):
+        """Search for key k in bucket at index j.
+
+        Return (success, index) tuple, described as follows:
+        If match was found, success is True and index denotes its location.
+        If no match found, success is False and index denotes first available slot.
+        """
+        firstAvail = None
+        while True:
+            if self._is_available(j):
+                if firstAvail is None:
+                    firstAvail = j  # mark this as first avail
+                if self._table[j] is None:
+                    return False, firstAvail  # search has failed
+            elif k == self._table[j]._key:
+                return True, j  # found a match
+            j = (j + self._d(k)) % self.capacity()  # keep looking (cyclically)
+            self._collision_counter += 1  # collision found. increment counter
+
     def _bucket_getitem(self, j, k):
-        pass
+        found, s = self._find_slot(j, k)
+        if not found:
+            raise KeyError('Key Error: ' + repr(k))  # no match found
+        return self._table[s]._value
 
     def _bucket_setitem(self, j, k, v):
-        pass
+        found, s = self._find_slot(j, k)
+        if not found:
+            self._table[s] = self._Item(k, v)  # insert new item
+            self._n += 1  # size has increased
+        else:
+            self._table[s]._value = v  # overwrite existing
 
     def _bucket_delitem(self, j, k):
-        pass
+        found, s = self._find_slot(j, k)
+        if not found:
+            raise KeyError('Key Error: ' + repr(k))  # no match found
+        self._table[s] = DoubleHashingHashMap._AVAIL  # mark as vacated
