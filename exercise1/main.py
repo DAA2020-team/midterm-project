@@ -14,14 +14,22 @@ def main():
     for code in [currency.code for currency in cur]:
         my_map[code] = code + " value"
 
-    print(my_map)
-    print(my_map.get_collisions())
+    print(len(my_map))
+    print("Collisions", my_map.get_collisions())
 
     """Test of getitem"""
     for code in [currency.code for currency in cur]:
         value = my_map[code]
 
-    print(my_map.get_collisions())
+    print(len(my_map))
+    print("Collisions", my_map.get_collisions())
+
+    """Test of delitem"""
+    for code in [currency.code for currency in cur]:
+        del my_map[code]
+
+    print(len(my_map))
+    print("Collisions", my_map.get_collisions())
 
 
 if __name__ == '__main__':

@@ -71,7 +71,9 @@ class DoubleHashingHashMap(HashMapBase):
             self._resize(primes_in_range(self.capacity(), 2 * self.capacity() - 1)[-1])
 
     def __delitem__(self, k):
-        pass
+        j = self._h(k)
+        self._bucket_delitem(j, k)  # may raise KeyError
+        self._n -= 1
 
     def __iter__(self):
         for j in range(len(self._table)):  # scan entire table
@@ -132,4 +134,7 @@ class DoubleHashingHashMap(HashMapBase):
             self._table[s]._value = v  # overwrite existing
 
     def _bucket_delitem(self, j, k):
-        pass
+        found, s = self._find_slot(j, k)
+        if not found:
+            raise KeyError('Key Error: ' + repr(k))  # no match found
+        self._table[s] = DoubleHashingHashMap._AVAIL  # mark as vacated
