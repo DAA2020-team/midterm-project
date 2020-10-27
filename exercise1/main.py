@@ -1,5 +1,4 @@
 from data_structures.double_hashing_hash_map import DoubleHashingHashMap
-from exercise1.utils import segmented_sieve
 
 from iso4217 import Currency as cur
 
@@ -11,9 +10,8 @@ def main():
     if code not in [currency.code for currency in cur]:
         raise TypeError
 
-    my_map[code] = 42
-    my_map._bucket_setitem(12, "USD", 43)
-    my_map._bucket_setitem(12, "JPY", 44)
+    for code in [currency.code for currency in cur]:
+        my_map[code] = code
 
     print(my_map)
 

@@ -1,6 +1,7 @@
 from .hash_map_base import HashMapBase
-from exercise1.utils import bitify
 from .map_base import MapBase
+
+from exercise1.utils import bitify, primes_in_range
 
 
 class DoubleHashingHashMap(HashMapBase):
@@ -71,14 +72,18 @@ class DoubleHashingHashMap(HashMapBase):
         j = self._h(k)
         self._bucket_setitem(j, k, v)  # subroutine maintains self._n
         if self._n > self.capacity() // 2:  # keep load factor <= 0.5
-            # resize must be called at the biggest prime in segmented_sieve(len(self._table), 2 * len(self._table) - 1)
-            self._resize(2 * self.capacity() - 1)  # number 2^x - 1 is often prime
+            self._resize(primes_in_range(self.capacity(), 2 * self.capacity() - 1)[-1])
 
     def __delitem__(self, k):
         pass
 
     def __iter__(self):
         pass
+
+    def items(self):
+        for j in range(len(self._table)):  # scan entire table
+            if not self._is_available(j):
+                yield self._table[j]._key, self._table[j]._value
 
     def __str__(self):
         return str([str(item) for item in self._table if item is not None])
