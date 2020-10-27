@@ -61,12 +61,8 @@ class DoubleHashingHashMap(HashMapBase):
     # --------------- PUBLIC METHODS ---------------
 
     def __getitem__(self, k):
-        """
-        Returns the value associated to key k.
-        :param k: key to search
-        :return: the value associated to k, if k exists
-        """
-        pass
+        j = self._h(k)
+        return self._bucket_getitem(j, k)  # may raise KeyError
 
     def __setitem__(self, k, v):
         j = self._h(k)
@@ -78,7 +74,9 @@ class DoubleHashingHashMap(HashMapBase):
         pass
 
     def __iter__(self):
-        pass
+        for j in range(len(self._table)):  # scan entire table
+            if not self._is_available(j):
+                yield self._table[j]._key
 
     def items(self):
         for j in range(len(self._table)):  # scan entire table
@@ -120,7 +118,10 @@ class DoubleHashingHashMap(HashMapBase):
             self._collision_counter += 1  # collision found. increment counter
 
     def _bucket_getitem(self, j, k):
-        pass
+        found, s = self._find_slot(j, k)
+        if not found:
+            raise KeyError('Key Error: ' + repr(k))  # no match found
+        return self._table[s]._value
 
     def _bucket_setitem(self, j, k, v):
         found, s = self._find_slot(j, k)
