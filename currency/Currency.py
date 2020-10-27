@@ -11,11 +11,21 @@ class Currency:
 
         self._code = code
         self._denominations = AVLTreeMap()
-        self._changes = DoubleHashingHashMap() # todo change to doublehashinghashmap
+        self._changes = DoubleHashingHashMap()  # todo change to doublehashinghashmap
 
     def _raise_ex_if_den_empty(self):
         if self._denominations.is_empty():
             raise ValueError("No denomination present")
+
+    def _raise_ex_if_code_not_valid(self, code):
+        if utils.validate_iso_code(code) is False:
+            raise ValueError("code is not a valid ISO4217 code")
+
+    def set_denominations(self, denominations):
+        self._denominations = denominations
+
+    def set_changes(self, changes):
+        self._changes = changes
 
     def add_denomination(self, value):
         if value in self._denominations:
@@ -68,7 +78,43 @@ class Currency:
     def iter_denominations(self, reverse=False):
         return self._denominations.__iter__() if not reverse else self._denominations.__reversed__()
 
+#TODO: to test
+""" 
+    def add_change(self, currency_code, change):
+        if currency_code == self._code and change != 1:
+            raise ValueError("Same currency code implies change equals to 1")
+        self._raise_ex_if_code_not_valid(currency_code)
+        #FIXME: in this way we are executing two search operation.
+        if currency_code in self._changes:
+            raise ValueError(str(currency_code) + " is already present.")
+        self._changes[currency_code] = change
 
+    def remove_change(self, currency_code):
+        self._raise_ex_if_code_not_valid(currency_code)
+        try:
+            del self._changes[currency_code]
+        except KeyError as error:
+            raise KeyError("Currency " + str(currency_code) + " not present.") from error
+        return
+
+    def update_change(self, currency_code, change):
+        self._raise_ex_if_code_not_valid(currency_code)
+        self._changes[currency_code] = change
+
+    def copy(self):
+        t = Currency(self._code)
+        t.set_denominations(self._denominations)
+        t.set_changes(self._changes)
+
+    def deep_copy(self):
+        c = Currency("" + self._code)
+        for e in self._denominations.breadthfirst():
+            c._denominations[e.key()] = e.key()
+        for ch in self._changes:
+            dp_ch = ch.deep_copy()
+            c._changes[dp_ch[0]] = dp_ch[1]
+
+"""
 cur = Currency("EUR")
 cur.add_denomination(1)
 cur.add_denomination(3)
@@ -96,3 +142,7 @@ for i in cur.iter_denominations():
 for i in cur.iter_denominations(True):
     print(i)
 
+cur.add_change("ZZZ", 10)
+cur.add_change("USD", 10)
+
+cur.remove_change("ZZZ")
