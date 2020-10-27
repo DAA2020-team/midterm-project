@@ -1,6 +1,6 @@
 from data_structures.avl_tree import AVLTreeMap
-from data_structures.hash_map_base import HashMapBase
-from . import utils
+from data_structures.double_hashing_hash_map import DoubleHashingHashMap
+import currency.utils as utils
 
 
 class Currency:
@@ -11,7 +11,7 @@ class Currency:
 
         self._code = code
         self._denominations = AVLTreeMap()
-        self._changes = HashMapBase() # todo change to doublehashinghashmap
+        self._changes = DoubleHashingHashMap() # todo change to doublehashinghashmap
 
     def _raise_ex_if_den_empty(self):
         if self._denominations.is_empty():
