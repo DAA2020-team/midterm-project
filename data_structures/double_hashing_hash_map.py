@@ -15,6 +15,10 @@ class DoubleHashingHashMap(HashMapBase):
     class _Item(MapBase._Item):
 
         def __str__(self):
+            """
+            Returns the string representation of the item.
+            :return: string representation of the item
+            """
             return "{%s: %s}" % (self._key, self._value)
 
     # --------------- CONSTRUCTOR ---------------
@@ -61,38 +65,185 @@ class DoubleHashingHashMap(HashMapBase):
     # --------------- PUBLIC METHODS ---------------
 
     def __getitem__(self, k):
+        """
+        Returns the value associated to key k if it exists, otherwise it throws an exception.
+        :param k: key to search
+        :return: value associated to k
+        """
         j = self._h(k)
         return self._bucket_getitem(j, k)  # may raise KeyError
 
     def __setitem__(self, k, v):
+        """
+        Assigns value v to key k, overwriting the old value if k is already present.
+        :param k: key to insert
+        :param v: value associated to k
+        :return: None
+        """
         j = self._h(k)
         self._bucket_setitem(j, k, v)  # subroutine maintains self._n
         if self._n > self.capacity() // 2:  # keep load factor <= 0.5
             self._resize(primes_in_range(self.capacity(), 2 * self.capacity() - 1)[-1])
 
     def __delitem__(self, k):
+        """
+        If k exists, deletes both key k and its value, otherwise it throws and exception.
+        :param k: key to delete
+        :return: None
+        """
         j = self._h(k)
         self._bucket_delitem(j, k)  # may raise KeyError
         self._n -= 1
 
+    def clear(self):
+        """
+        Removes all the pairs key-value present.
+        :return: None
+        """
+        self._table = self.capacity() * [None]
+        self._n = 0
+
+    def get(self, k, d=None):
+        """
+        Returns the value associated to key k if present, otherwise it returns d.
+        :param k: key to search
+        :param d: arbitrary value
+        :return: value associated to k if present, otherwise d
+        """
+        try:
+            return self[k]
+        except KeyError:
+            return d
+
+    def setdefault(self, k, d=None):
+        """
+        Returns the value associated to key k if present, otherwise it makes self[k]=d and returns d.
+        :param k: key to insert
+        :param d: arbitrary value
+        :return: value associated to k if present, otherwise d
+        """
+        try:
+            return self[k]
+        except KeyError:
+            self[k] = d
+            return d
+
+    def pop(self, k, d=None):
+        """
+        Returns self[k] and deletes the pair if present, otherwise it returns d.
+        :param k: key to delete
+        :param d: arbitrary value
+        :return: value associated to k if present, otherwise d
+        """
+        try:
+            v = self[k]
+            del self[k]
+            return v
+        except KeyError:
+            return d
+
+    def popitem(self):
+        """
+        Returns an arbitrary pair (k, v) and deletes it. It throws an exception if the map is empty.
+        :return: arbitrary pair (k, v)
+        """
+        if self.is_empty():
+            raise Exception("The map is empty!")
+        for j in range(len(self._table)):  # scan entire table
+            if not self._is_available(j):
+                k, v = self._table[j]._key, self._table[j]._value
+                self._table[j] = DoubleHashingHashMap._AVAIL
+                self._n -= 1
+                return k, v
+
     def __iter__(self):
+        """
+        Generates a sequence of keys.
+        :return: a generator of all keys in the map
+        """
         for j in range(len(self._table)):  # scan entire table
             if not self._is_available(j):
                 yield self._table[j]._key
 
+    def keys(self):
+        """
+        Returns a set-like view of all keys in the map.
+        :return:  set-like view of all keys in the map
+        """
+        return set(self)
+
+    def values(self):
+        """
+        Returns a set-like view of all values in the map.
+        :return: set-like view of all values in the map
+        """
+        s = set()
+        for key in self:
+            s.add(self[key])
+        return s
+
     def items(self):
-        for j in range(len(self._table)):  # scan entire table
-            if not self._is_available(j):
-                yield self._table[j]._key, self._table[j]._value
+        """
+        Returns a set-like view of all (k, v) tuples in the map.
+        :return: set-like view of all (k, v) tuples in the map
+        """
+        s = set()
+        for key in self:
+            s.add((key, self[key]))
+        return s
+
+    def __eq__(self, other):
+        """
+        Returns True if self contains the same pairs as other.
+        :param other: another DoubleHashingHashMap
+        :return: True if self contains the same pairs as other, False otherwise
+        """
+        return self.items() == other.items()
+
+    def __ne__(self, other):
+        """
+        Returns True if self does not contain the same pairs as other.
+        :param other: another DoubleHashingHashMap
+        :return: True if self does not contain the same pairs as other, False otherwise
+        """
+        return not self == other
+
+    def update(self, other, **kwargs):
+        """
+        For each pair (k, v) in other sets self[k] = v.
+        :param other: another DoubleHashingHashMap
+        :return: None
+        """
+        for k, v in other.items():
+            self[k] = v
 
     def __str__(self):
-        return str([str(item) for item in self._table if item is not None])
+        """
+        Returns the string representation of the map.
+        :return: string representation of the map
+        """
+        return str(self.items())
 
     def capacity(self):
+        """
+        Returns the current capacity of the table.
+        :return: current capacity of the table
+        """
         return len(self._table)
 
     def get_collisions(self):
+        """
+        Returns the number of collisions found during the lifetime of the map.
+        :return: number of collisions found during the lifetime of the map
+        """
         return self._collision_counter
+
+    def is_empty(self):
+        """
+        Returns True if the map does not contain any key.
+        :return: True if the map does not contain any key, False otherwise
+        """
+        return len(self) == 0
 
     # --------------- PRIVATE METHODS ---------------
 
@@ -120,12 +271,25 @@ class DoubleHashingHashMap(HashMapBase):
             self._collision_counter += 1  # collision found. increment counter
 
     def _bucket_getitem(self, j, k):
+        """
+        Search for key k in bucket at index j and returns the value associated to k.
+        :param j: index of the bucket
+        :param k: key to search
+        :return: value associated to k
+        """
         found, s = self._find_slot(j, k)
         if not found:
             raise KeyError('Key Error: ' + repr(k))  # no match found
         return self._table[s]._value
 
     def _bucket_setitem(self, j, k, v):
+        """
+        Search for key k in bucket at index j and sets v as value associated to k.
+        :param j: index of the bucket
+        :param k: key to insert
+        :param v: value associated to k
+        :return: None
+        """
         found, s = self._find_slot(j, k)
         if not found:
             self._table[s] = self._Item(k, v)  # insert new item
@@ -134,6 +298,12 @@ class DoubleHashingHashMap(HashMapBase):
             self._table[s]._value = v  # overwrite existing
 
     def _bucket_delitem(self, j, k):
+        """
+        Search for key k in bucket at index j and deletes k.
+        :param j: index of the bucket
+        :param k: key to delete
+        :return: None
+        """
         found, s = self._find_slot(j, k)
         if not found:
             raise KeyError('Key Error: ' + repr(k))  # no match found
