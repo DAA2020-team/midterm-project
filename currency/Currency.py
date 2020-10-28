@@ -17,9 +17,13 @@ class Currency:
         if self._denominations.is_empty():
             raise ValueError("No denomination present")
 
-    def _raise_ex_if_code_not_valid(self, code):
-        if utils.validate_iso_code(code) is False:
+    def _raise_ex_if_code_not_valid(self, c):
+        if utils.validate_iso_code(c) is False:
             raise ValueError("code is not a valid ISO4217 code")
+
+    def _raise_ex_if_value_not_int_or_float(self, v):
+        if type(v) is not float and type(v) is not int:
+            raise ValueError("Value must be a float, " + str(type(v)) + " was provided")
 
     def set_denominations(self, denominations):
         self._denominations = denominations
@@ -85,6 +89,7 @@ class Currency:
     def add_change(self, currency_code, change):
         if currency_code == self._code and change != 1:
             raise ValueError("Same currency code implies change equals to 1")
+        self._raise_ex_if_value_not_int_or_float(change)
         self._raise_ex_if_code_not_valid(currency_code)
 
         try:
@@ -101,12 +106,12 @@ class Currency:
         except KeyError as error:
             raise KeyError("Currency " + str(currency_code) + " not present.") from error
 
-
-"""
     def update_change(self, currency_code, change):
+        self._raise_ex_if_value_not_int_or_float(change)
         self._raise_ex_if_code_not_valid(currency_code)
         self._changes[currency_code] = change
 
+"""
     def copy(self):
         t = Currency(self._code)
         t.set_denominations(self._denominations)
@@ -153,6 +158,8 @@ cur.add_change("USD", 10)
 cur.add_change("ASD", 199)
 
 cur.remove_change("ASD")
-cur.add_change("ASD", 19)
+cur.add_change("ASD", 19.983475823498572394857902348750931)
+cur.add_change("AWD", True)
+
 cur.remove_change("ASD")
 cur.remove_change("ZZZ")
