@@ -56,13 +56,13 @@ class Currency:
 
     def next_denomination(self, value):
         self._raise_ex_if_den_empty()
-        if value not in self._denominations:
+        if value not in self._denominations:  # fixme
             raise ValueError(str(value) + " is not a denomination")
         return self._denominations.find_gt(value)
 
     def prev_denomination(self, value):
         self._raise_ex_if_den_empty()
-        if value not in self._denominations:
+        if value not in self._denominations:  # fixme
             raise ValueError(str(value) + " is not a denomination")
         return self._denominations.find_lt(value)
 
@@ -78,16 +78,17 @@ class Currency:
     def iter_denominations(self, reverse=False):
         return self._denominations.__iter__() if not reverse else self._denominations.__reversed__()
 
-#TODO: to test
-""" 
     def add_change(self, currency_code, change):
         if currency_code == self._code and change != 1:
             raise ValueError("Same currency code implies change equals to 1")
         self._raise_ex_if_code_not_valid(currency_code)
-        #FIXME: in this way we are executing two search operation.
-        if currency_code in self._changes:
-            raise ValueError(str(currency_code) + " is already present.")
-        self._changes[currency_code] = change
+
+        try:
+            _ = self._changes[currency_code]
+        except KeyError:
+            self._changes[currency_code] = change
+            return
+        raise ValueError(str(currency_code) + " is already present.")
 
     def remove_change(self, currency_code):
         self._raise_ex_if_code_not_valid(currency_code)
@@ -95,8 +96,9 @@ class Currency:
             del self._changes[currency_code]
         except KeyError as error:
             raise KeyError("Currency " + str(currency_code) + " not present.") from error
-        return
 
+
+"""
     def update_change(self, currency_code, change):
         self._raise_ex_if_code_not_valid(currency_code)
         self._changes[currency_code] = change
@@ -144,5 +146,9 @@ for i in cur.iter_denominations(True):
 
 cur.add_change("ZZZ", 10)
 cur.add_change("USD", 10)
+cur.add_change("ASD", 199)
 
+cur.remove_change("ASD")
+cur.add_change("ASD", 19)
+cur.remove_change("ASD")
 cur.remove_change("ZZZ")
