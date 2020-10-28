@@ -4,6 +4,7 @@ import currency.utils as utils
 
 
 class Currency:
+    __slots__ = '_code', '_denominations', '_changes'
 
     def __init__(self, code):
         if utils.validate_iso_code(code) is False:
@@ -13,17 +14,23 @@ class Currency:
         self._denominations = AVLTreeMap()
         self._changes = DoubleHashingHashMap()
 
+    @staticmethod
+    def _raise_ex_if_code_not_valid(c):
+        if utils.validate_iso_code(c) is False:
+            raise ValueError("code is not a valid ISO4217 code")
+
+    @staticmethod
+    def _raise_ex_if_value_not_int_or_float(v):
+        if type(v) is not float and type(v) is not int:
+            raise ValueError("Value must be a float, " + str(type(v)) + " was provided")
+
     def _raise_ex_if_den_empty(self):
         if self._denominations.is_empty():
             raise ValueError("No denomination present")
 
-    def _raise_ex_if_code_not_valid(self, c):
-        if utils.validate_iso_code(c) is False:
-            raise ValueError("code is not a valid ISO4217 code")
-
-    def _raise_ex_if_value_not_int_or_float(self, v):
-        if type(v) is not float and type(v) is not int:
-            raise ValueError("Value must be a float, " + str(type(v)) + " was provided")
+    def get_change(self, currency_code):
+        self._raise_ex_if_code_not_valid(currency_code)
+        return self._changes[currency_code]
 
     def set_denominations(self, denominations):
         self._denominations = denominations
@@ -111,55 +118,16 @@ class Currency:
         self._raise_ex_if_code_not_valid(currency_code)
         self._changes[currency_code] = change
 
-"""
     def copy(self):
         t = Currency(self._code)
         t.set_denominations(self._denominations)
         t.set_changes(self._changes)
+        return t
 
     def deep_copy(self):
-        c = Currency("" + self._code)
+        c = Currency(self._code)
         for e in self._denominations.breadthfirst():
             c._denominations[e.key()] = e.key()
         for ch in self._changes:
-            dp_ch = ch.deep_copy()
-            c._changes[dp_ch[0]] = dp_ch[1]
-
-"""
-cur = Currency("EUR")
-cur.add_denomination(1)
-cur.add_denomination(3)
-cur.add_denomination(5)
-cur.add_denomination(7)
-
-cur.del_denomination(3)
-
-print(cur.min_denomination(1))
-print(cur.max_denomination(5))
-
-print(cur.next_denomination(7))
-print(cur.prev_denomination(1))
-
-print(cur.has_denominations())
-print(cur.num_denominations())
-
-cur.clear_denominations()
-print()
-for i in range(1, 16):
-    cur.add_denomination(i*i)
-
-for i in cur.iter_denominations():
-    print(i)
-for i in cur.iter_denominations(True):
-    print(i)
-
-cur.add_change("ZZZ", 10)
-cur.add_change("USD", 10)
-cur.add_change("ASD", 199)
-
-cur.remove_change("ASD")
-cur.add_change("ASD", 19.983475823498572394857902348750931)
-cur.add_change("AWD", True)
-
-cur.remove_change("ASD")
-cur.remove_change("ZZZ")
+            c._changes[ch[0]] = ch[1]
+        return c
