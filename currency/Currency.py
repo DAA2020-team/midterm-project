@@ -32,12 +32,6 @@ class Currency:
         self._raise_ex_if_code_not_valid(currency_code)
         return self._changes[currency_code]
 
-    def set_denominations(self, denominations):
-        self._denominations = denominations
-
-    def set_changes(self, changes):
-        self._changes = changes
-
     def add_denomination(self, value):
         """
         Add value in the Denominations map. It raises an exception
@@ -48,9 +42,12 @@ class Currency:
         :raises ValueError: if denomination is not an integer or a float
         """
         self._raise_ex_if_value_not_int_or_float(value)
-        if value in self._denominations:
-            raise ValueError(str(value) + " is already present")
-        self._denominations[value] = value
+        try:
+            _ = self._denominations[value]
+        except KeyError:
+            self._denominations[value] = value
+            return
+        raise ValueError(str(value) + " is already present")
 
     def del_denomination(self, value):
         """
@@ -225,8 +222,8 @@ class Currency:
         :return: the copied object whose attribute are identical to the original object
         """
         t = Currency(self._code)
-        t.set_denominations(self._denominations)
-        t.set_changes(self._changes)
+        t._denominations = self._denominations
+        t._changes = self._changes
         return t
 
     def deep_copy(self):
