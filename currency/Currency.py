@@ -11,7 +11,7 @@ class Currency:
 
         self._code = code
         self._denominations = AVLTreeMap()
-        self._changes = DoubleHashingHashMap()  # todo change to doublehashinghashmap
+        self._changes = DoubleHashingHashMap()
 
     def _raise_ex_if_den_empty(self):
         if self._denominations.is_empty():
@@ -56,15 +56,19 @@ class Currency:
 
     def next_denomination(self, value):
         self._raise_ex_if_den_empty()
-        if value not in self._denominations:  # fixme
-            raise ValueError(str(value) + " is not a denomination")
-        return self._denominations.find_gt(value)
+        try:
+            _ = self._denominations[value]
+            return self._denominations.find_gt(value)
+        except KeyError as e:
+            raise ValueError(str(value) + " is not a denomination") from e
 
     def prev_denomination(self, value):
         self._raise_ex_if_den_empty()
-        if value not in self._denominations:  # fixme
-            raise ValueError(str(value) + " is not a denomination")
-        return self._denominations.find_lt(value)
+        try:
+            _ = self._denominations[value]
+            return self._denominations.find_lt(value)
+        except KeyError as e:
+            raise ValueError(str(value) + " is not a denomination") from e
 
     def has_denominations(self):
         return not self._denominations.is_empty()
