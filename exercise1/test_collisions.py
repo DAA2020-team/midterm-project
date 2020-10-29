@@ -31,5 +31,5 @@ for i in range(N):
     num_collision.append(my_map.get_collisions())
 
 result = {z: sum(num_collision)/N}
-with open(os.path.join(ROOT_DIR, f"resources/collisions_{z}.txt", "a")) as f:
+with open(os.path.join(ROOT_DIR, 'resources', f'collisions_{z}.txt'), "w") as f:
     f.write(str(result) + "\n")
