@@ -74,11 +74,11 @@ class Currency:
         """
         self._raise_ex_if_den_empty()
         if value is None:
-            return self._denominations.find_min()
+            return self._denominations.find_min()[0]
         v = self._denominations.find_gt(value)
         if v is None:
             raise ValueError("No denomination greater than " + str(value) + " present")
-        return v
+        return v[0]
 
     def max_denomination(self, value=None):
         """
@@ -93,11 +93,11 @@ class Currency:
         """
         self._raise_ex_if_den_empty()
         if value is None:
-            return self._denominations.find_max()
+            return self._denominations.find_max()[0]
         v = self._denominations.find_lt(value)
         if v is None:
             raise ValueError("No denomination smaller than " + str(value) + " present")
-        return v
+        return v[0]
 
     def next_denomination(self, value):
         """
@@ -110,7 +110,8 @@ class Currency:
         self._raise_ex_if_den_empty()
         try:
             _ = self._denominations[value]
-            return self._denominations.find_gt(value)
+            t = self._denominations.find_gt(value)
+            return t[0] if t is not None else None
         except KeyError as e:
             raise ValueError(str(value) + " is not a denomination") from e
 
@@ -125,7 +126,8 @@ class Currency:
         self._raise_ex_if_den_empty()
         try:
             _ = self._denominations[value]
-            return self._denominations.find_lt(value)
+            t = self._denominations.find_lt(value)
+            return t[0] if t is not None else None
         except KeyError as e:
             raise ValueError(str(value) + " is not a denomination") from e
 
@@ -159,7 +161,12 @@ class Currency:
         :param reverse: If True, the iterator iters in descending order
         :return: a denominations iterator, the order is defined by the parameter
         """
-        return self._denominations.__iter__() if not reverse else self._denominations.__reversed__()
+        if reverse:
+            g = self._denominations.__reversed__()
+        else:
+            g = self._denominations.__iter__()
+        for i in g:
+            yield i
 
     def add_change(self, currency_code, change):
         """
