@@ -1,7 +1,7 @@
 from .hash_map_base import HashMapBase
 from .map_base import MapBase
 
-from exercise1.utils import bitify, primes_in_range
+from exercise1.utils import bitify, load_primes, binary_search
 
 
 class DoubleHashingHashMap(HashMapBase):
@@ -83,7 +83,9 @@ class DoubleHashingHashMap(HashMapBase):
         j = self._h(k)
         self._bucket_setitem(j, k, v)  # subroutine maintains self._n
         if self._n > self.capacity() // 2:  # keep load factor <= 0.5
-            self._resize(primes_in_range(self.capacity(), 2 * self.capacity() - 1)[-1])
+            primes = load_primes()
+            _, index = binary_search(primes, 2 * self.capacity())
+            self._resize(primes[index])
 
     def __delitem__(self, k):
         """

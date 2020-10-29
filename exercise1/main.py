@@ -1,5 +1,5 @@
 from data_structures.double_hashing_hash_map import DoubleHashingHashMap
-
+from exercise1.utils import load_primes
 from iso4217 import Currency as cur
 
 
@@ -50,9 +50,9 @@ def main():
     print("""Test of popitem""")
     print(my_map.popitem())
     """
-    my_map2 = DoubleHashingHashMap()
-    my_map2.popitem()
-    """
+        my_map2 = DoubleHashingHashMap()
+        my_map2.popitem()
+        """
 
     print("""Test of keys""")
     print(my_map.keys())
@@ -85,14 +85,16 @@ def main():
     print(my_map == my_map3)
     print(len(my_map) == len(my_map3))
 
-    """
     print("Test of delitem")
     for code in [currency.code for currency in cur]:
         del my_map[code]
 
     print(len(my_map))
     print("Collisions", my_map.get_collisions())
-    """
+
+    print("""Test of load primes""")
+    print(load_primes()[:100])
+
 
 if __name__ == '__main__':
     main()
