@@ -1,11 +1,5 @@
-import re
+from iso4217 import Currency as cur
 
 
 def validate_iso_code(code):
-    if len(code) != 3:
-        return False
-
-    if re.search("[A-Z]{3}", code) is None:
-        return False
-
-    return True
+    return code in [currency.code for currency in cur]

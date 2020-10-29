@@ -235,6 +235,15 @@ class Currency:
         c = Currency(self._code)
         for e in self._denominations.breadthfirst():
             c._denominations[e.key()] = e.key()
-        for ch in self._changes:
-            c._changes[ch[0]] = ch[1]
+        # there are only float or int in the map, so this copy is fine and does not require recursive deep copies
+        c._changes._table = self._changes._table[:]
+        c._changes._n = self._changes._n
+
+        # a copy needs to be equivalent, this two values are random during the initialization
+        c._changes._scale = self._changes._scale
+        c._changes._shift = self._changes._shift
+
+        # this value changes every time there is a collision, so it must be copied
+        c._changes._collision_counter = self._changes._collision_counter
+        # the other attribute are "constant" attribute, so a copy is not needed since they are the same
         return c
