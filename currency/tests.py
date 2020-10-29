@@ -28,20 +28,21 @@ for i in cur.iter_denominations():
 for i in cur.iter_denominations(True):
     print(i)
 
-cur.add_change("ZZZ", 10)
+cur.add_change("EUR", 1)
 cur.add_change("USD", 10)
-cur.add_change("ASD", 199)
+cur.add_change("JPY", 199)
 
-cur.remove_change("ASD")
-cur.add_change("ASD", 19.983475823498572394857902348750931)
-cur.add_change("AWD", 12)
-cur.remove_change("ASD")
-cur.remove_change("ZZZ")
+cur.add_change("AUD", 19.983475823498572394857902348750931)
+cur.remove_change("AUD")
+cur.update_change("AUD", 19.98347582349857239485702348750931)
+cur.add_change("ZWL", 12)
+cur.remove_change("AUD")
+cur.remove_change("ZWL")
 
 
-cur.update_change("ASD", 13.45)
+cur.update_change("AUD", 13.45)
 
-print(cur.get_change("ASD"))
+print(cur.get_change("AUD"))
 
 
 cur_copy = cur.copy()
