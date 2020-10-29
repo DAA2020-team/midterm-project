@@ -6,7 +6,7 @@ from exercise1.utils import bitify, load_primes, binary_search
 
 class DoubleHashingHashMap(HashMapBase):
 
-    __slots__ = '_z', '_q', '_collision_counter'
+    __slots__ = '_z', '_q', '_load_factor', '_collision_counter'
 
     _AVAIL = object()  # sentinal marks locations of previous deletions
 
@@ -23,7 +23,7 @@ class DoubleHashingHashMap(HashMapBase):
 
     # --------------- CONSTRUCTOR ---------------
 
-    def __init__(self, cap=17, z=92821, p=109345121, q=13):
+    def __init__(self, cap=17, z=92821, p=109345121, q=13, load_factor=0.5):
         """
         Constructor.
         :param cap: Initial capacity of the HashMap
@@ -34,6 +34,7 @@ class DoubleHashingHashMap(HashMapBase):
         super().__init__(cap=cap, p=p)
         self._z = z
         self._q = q
+        self._load_factor = load_factor
         self._collision_counter = 0
 
     # --------------- UTILITY METHODS ---------------
@@ -82,7 +83,7 @@ class DoubleHashingHashMap(HashMapBase):
         """
         j = self._h(k)
         self._bucket_setitem(j, k, v)  # subroutine maintains self._n
-        if self._n > self.capacity() // 2:  # keep load factor <= 0.5
+        if self._n > self._load_factor * self.capacity():  # keep load factor
             primes = load_primes()
             _, index = binary_search(primes, 2 * self.capacity())
             self._resize(primes[index])
@@ -104,6 +105,7 @@ class DoubleHashingHashMap(HashMapBase):
         """
         self._table = self.capacity() * [None]
         self._n = 0
+        self._collision_counter = 0
 
     def get(self, k, d=None):
         """
