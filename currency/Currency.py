@@ -234,7 +234,7 @@ class Currency:
         """
         c = Currency(self._code)
         for e in self._denominations.breadthfirst():
-            c._denominations[e.key()] = e.key()
+            c._denominations[e.key()] = e.value()
         # there are only float or int in the map, so this copy is fine and does not require recursive deep copies
         c._changes._table = self._changes._table[:]
         c._changes._n = self._changes._n
