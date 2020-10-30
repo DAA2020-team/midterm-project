@@ -32,11 +32,24 @@ class PriorityQueueBase:
             self._key = k
             self._value = v
 
+        def __eq__(self, other):
+            return self._key == other._key
+
         def __lt__(self, other):
             return self._key < other._key  # compare items based on their keys
 
         def __repr__(self):
             return '({0},{1})'.format(self._key, self._value)
+
+        def __gt__(self, other):
+            return not self.__lt__(other) and not self.__eq__(other)
+
+        def __ge__(self, other):
+            return self.__gt__(other) or self.__eq__(other)
+
+        def __le__(self, other):
+            return self.__lt__(other) or self.__eq__(other)
+
 
     # ------------------------------ public behaviors ------------------------------
     def is_empty(self):  # concrete method assuming abstract len
