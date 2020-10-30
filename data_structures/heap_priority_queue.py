@@ -51,26 +51,35 @@ class HeapPriorityQueue(PriorityQueueBase):  # base class defines _Item
 
     def _upheap(self, j):
         parent = self._parent(j)
-        if j > 0 and self._data[j] < self._data[parent]:
+        if j > 0 and self._data[j] > self._data[parent]:
             self._swap(j, parent)
             self._upheap(parent)  # recur at position of parent
 
     def _downheap(self, j):
         if self._has_left(j):
             left = self._left(j)
-            small_child = left  # although right may be smaller
+            big_child = left  # although right may be smaller
             if self._has_right(j):
                 right = self._right(j)
-                if self._data[right] < self._data[left]:
-                    small_child = right
-            if self._data[small_child] < self._data[j]:
-                self._swap(j, small_child)
-                self._downheap(small_child)  # recur at position of small child
+                if self._data[right] > self._data[left]:
+                    big_child = right
+            if self._data[big_child] > self._data[j]:
+                self._swap(j, big_child)
+                self._downheap(big_child)  # recur at position of small child
+
+    def _heapify(self):
+        start = self._parent(len(self) - 1)
+        for j in range(start, -1, -1):
+            self._downheap(j)
 
     # ------------------------------ public behaviors ------------------------------
-    def __init__(self):
-        """Create a new empty Priority Queue."""
-        self._data = []
+    def __init__(self, contents=None):
+        """Create a new empty Priority Queue.
+        :param contents: list of (key, value) pairs, which will be set in the data structure
+        """
+        self._data = [self._Item(k, v) for k, v in contents]
+        if len(self._data) > 1:
+            self._heapify()
 
     def __len__(self):
         """Return the number of items in the priority queue."""
@@ -81,8 +90,8 @@ class HeapPriorityQueue(PriorityQueueBase):  # base class defines _Item
         self._data.append(self._Item(key, value))
         self._upheap(len(self._data) - 1)  # upheap newly added position
 
-    def min(self):
-        """Return but do not remove (k,v) tuple with minimum key.
+    def max(self):
+        """Return but do not remove (k,v) tuple with maximum key.
 
         Raise Empty exception if empty.
         """
@@ -91,8 +100,8 @@ class HeapPriorityQueue(PriorityQueueBase):  # base class defines _Item
         item = self._data[0]
         return (item._key, item._value)
 
-    def remove_min(self):
-        """Remove and return (k,v) tuple with minimum key.
+    def remove_max(self):
+        """Remove and return (k,v) tuple with maximum key.
 
         Raise Empty exception if empty.
         """
