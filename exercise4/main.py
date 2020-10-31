@@ -6,7 +6,7 @@ currency that sums up to the given value. E.g.: on input 12,85 and EUR currency,
 function must return 6 corresponding to 10+2+0,50+0,20+0,10+0,5. Note that the function is
 required to return both the number and the list of the corresponding coins.
 """
-from currency.Currency import Currency
+from exercise2.currency import Currency
 from data_structures.heap_priority_queue import HeapPriorityQueue
 from typing import Tuple, List
 
