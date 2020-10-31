@@ -8,9 +8,19 @@ required to return both the number and the list of the corresponding coins.
 """
 from currency.Currency import Currency
 from data_structures.heap_priority_queue import HeapPriorityQueue
+from typing import Tuple, List
 
 
-def change(value, currency, decimal=2):
+def change(value, currency, decimal=2) -> Tuple[List, int]:
+    """
+    Given a currency with standard denominations, returns the list and mimimum number of denominations that
+    sum up to the parameter value. The parameter decimal is used to round the values due to the
+    floating-point errors.
+    :param value: the amount that will be divided into denominations
+    :param currency: instance of the Currency class
+    :param decimal: number of decimal points
+    :return: a 2 element tuple, the list of the used denominations and its length
+    """
     needed_denominations = [(e, e) for e in currency.iter_denominations(reverse=True) if e <= value]
     queue = HeapPriorityQueue(contents=needed_denominations)
     used_den = []
@@ -22,7 +32,15 @@ def change(value, currency, decimal=2):
     return used_den, len(used_den)
 
 
-def test(n=10000, step=100, manual=False):
+def test(n=3000, step=100, manual=False):
+    """
+    Test function to test the implementation of the change function.
+    :param n: number of tests to perform
+    :param step: how often the progress of the test will be printed, in test
+    :param manual: if True, prints the return value of the fucntion change and waits for an "Enter" key input;
+                    otherwise, the test will run automatically.
+    :return: None
+    """
     import random
     c = get_currency()
     for t in range(n):
@@ -36,9 +54,16 @@ def test(n=10000, step=100, manual=False):
         assert(round(sum(l), 2) == round(v, 2))
 
 
-def get_currency(c="EUR"):
+def get_currency(c="EUR", d=None):
+    """
+    Method to create easily a currency with standard denominations, if none is provided.
+    :param c: the currency name
+    :param d: the list of denominations to be used
+    :return: the new currency
+    """
+    if d is None:
+        d = [0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1, 2, 5, 10, 20, 50, 100, 200, 500]
     cur = Currency(c)
-    d = [0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1, 2, 5, 10, 20, 50, 100, 200, 500]
     for i in d:
         cur.add_denomination(i)
     return cur
