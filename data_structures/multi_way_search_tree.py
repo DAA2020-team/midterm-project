@@ -48,6 +48,9 @@ class MultiWaySearchTree(Tree, MapBase):
             """Returns the string representation of the Node"""
             return repr(self._elements)
 
+        def __len__(self):
+            return len(self._elements)
+
     # ------------------------------- NESTED Position CLASS -------------------------------
 
     class Position(Tree.Position):
@@ -90,6 +93,9 @@ class MultiWaySearchTree(Tree, MapBase):
 
         def is_full(self):
             return len(self) == self._node._b - 1
+
+        def is_overflow(self):
+            return len(self) > self._node._b - 1
 
         def __len__(self):
             return len(self.element())
@@ -165,6 +171,64 @@ class MultiWaySearchTree(Tree, MapBase):
             return False, p, index + 1
         return self._subtree_search(next_position, k)
 
+    def _subtree_repr(self, p: Position, level: int, children_counter: int) -> str:
+        """Returns the string representation of the subtree rooted at p"""
+        string = ""
+        self._validate(p)
+        if level == 0:
+            num_children = self.num_children(p)
+            if num_children == 0:
+                string += f"{'  ' * level}level {level}:  {p}\n"
+            else:
+                string += f"{'  ' * level}level {level}:  {p}, {num_children} children:\n"
+        else:
+            num_children = self.num_children(p)
+            if num_children == 0:
+                string += f"{'  ' * level}level {level}, child {children_counter}:  {p}\n"
+            else:
+                string += f"{'  ' * level}level {level}, child {children_counter}:  {p}, " \
+                          f"{self.num_children(p)} children:\n"
+        children_counter = 0
+        for child in self.children(p):
+            string += self._subtree_repr(child, level + 1, children_counter)
+            children_counter += 1
+        return string
+
+    def _split(self, p: Position) -> Tuple[_Node, _Item, _Node]:
+        """
+        Splits p in smaller node, median item and bigger node
+        :param p: position to split
+        :return:
+            smaller node: Node: position with keys smaller than median key
+            median item: Item: item with median key and value
+            bigger node: Node: position with keys bigger than median key
+        """
+        self._validate(p)
+        # Consider the keys saved in node p
+        keys = p.keys()[:]
+        values = p.values()[:]
+        # We split keys and values in three parts:
+        #   the median key (km) and median value (vm),
+        #   keys and values smaller than the km and vm (ks and vs),
+        #   and keys and values larger than the km and vm (kb and vb)
+        median = len(keys) // 2
+        km, vm = keys[median], values[median]
+        ks, vs = keys[:median], values[:median]
+        kb, vb = keys[median + 1:], values[median + 1:]
+        # With ks and vs we create a new node
+        smaller_node = self._Node(self._a, self._b, [self._Item(k, v) for k, v in zip(ks, vs)])
+        for j in range(median + 1):  # j parses all children of smaller_node: they are median + 1
+            smaller_node._children[j] = p._node._children[j]
+            if p._node._children[j] is not None:
+                p._node._children[j]._parent = smaller_node
+        # With kb and vb we create a new node
+        bigger_node = self._Node(self._a, self._b, [self._Item(k, v) for k, v in zip(kb, vb)])
+        for j in range(median):  # j parses all children of bigger_node: they are median
+            bigger_node._children[j] = p._node._children[median + 1 + j]
+            if p._node._children[j] is not None:
+                p._node._children[median + 1 + j]._parent = bigger_node
+        return smaller_node, self._Item(km, vm), bigger_node
+
     # -------------------------- PUBLIC METHODS --------------------------
 
     def __len__(self):
@@ -205,52 +269,41 @@ class MultiWaySearchTree(Tree, MapBase):
         else:
             # Search for the node p that should contain k
             found, p, i = self._subtree_search(self.root(), k)
-            if not found:  # k is not in the tree
-                # Insert (k,v) in the tree
+            if not found:  # k is not in the tree, insert (k,v) in the tree
                 smaller_node = None
                 bigger_node = None
-                while p is not None:
-                    if not p.is_full():  # If p is not full, insert (k,v) in p
-                        node = p._node
-                        # To mantain p keys ordered, we have to move keys from index i
-                        node._elements = node._elements[:i] + [self._Item(k, v)] + node._elements[i:]
-                        # We also have to move the children from index i
-                        node._children = node._children[:i] + [smaller_node, bigger_node] + node._children[i + 1:]
-                        break
-                    else:  # We have to handle overflows
-                        # Consider the keys saved in node p, plus k
-                        keys = p.keys()
-                        keys = keys[:i] + [k] + keys[i:]
-                        values = p.values()
-                        values = values[:i] + [v] + values[i:]
-                        # We split keys and values in three parts:
-                        #   the median key (km) and median value (vm),
-                        #   keys and values smaller than the km and vm (ks and vs),
-                        #   and keys and values larger than the km and vm (kb and vb)
-                        median = len(keys) // 2
-                        km, vm = keys[median], values[median]
-                        ks, vs = keys[:median], values[:median]
-                        kb, vb = keys[median + 1:], values[median + 1:]
-                        # With ks and vs we create a new node
-                        smaller_node = self._Node(self._a, self._b,
-                                                  [self._Item(k, v) for k, v in zip(ks, vs)])
-                        # With kb and vb we create a new node
-                        bigger_node = self._Node(self._a, self._b,
-                                                 [self._Item(k, v) for k, v in zip(kb, vb)])
-                        # km is inserted in the parent of p with a pointer to the new nodes
+                while p is not None:  # we ended up to the root
+                    node = p._node
+                    # To mantain p keys ordered, we have to move keys from index i
+                    node._elements = node._elements[:i] + [self._Item(k, v)] + node._elements[i:]
+                    # We also have to move the children from index i
+                    node._children = node._children[:i] + [smaller_node, bigger_node] + node._children[i + 1:]
+                    if p.is_overflow():
+                        smaller_node, median_item, bigger_node = self._split(p)
+                        k, v = median_item._key, median_item._value
                         p = self.parent(p)
-                        if p is None:  # if p is root
+                        if p is None:  # p was the root
                             # A new root is created
-                            self._root = self._Node(self._a, self._b, [self._Item(km, vm)])
+                            self._root = self._Node(self._a, self._b, [self._Item(k, v)])
                             root = self._make_position(self._root)
+                            # the left child of the new root is smaller_node
                             root._node._children[0] = smaller_node
+                            smaller_node._parent = self._root
+                            # the right child of the new root is bigger_node
                             root._node._children[1] = bigger_node
-
+                            bigger_node._parent = self._root
+                        else:  # root of p exists
+                            smaller_node._parent = p._node
+                            bigger_node._parent = p._node
+                            # Search where to insert k in p
+                            _, i = binary_search(p.keys(), k)
+                            i += 1
+                    else:  # p is not in overflow, insertion completed
+                        break
                 # Increment the tree size
                 self._size += 1
             else:  # k is in p at index i, substitute old value with v
                 p._node._elements[i]._value = v
-                pass
             pass
 
     def __delitem__(self, v):
@@ -258,3 +311,7 @@ class MultiWaySearchTree(Tree, MapBase):
 
     def __getitem__(self, k):
         pass
+
+    def __repr__(self):
+        """Returns the string representation of the tree, level by level"""
+        return self._subtree_repr(self.root(), 0, 0)

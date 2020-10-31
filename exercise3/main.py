@@ -25,13 +25,14 @@ def main():
 
     possible_keys = list(range(101))
     shuffle(possible_keys)
-    for i in range(10):
+    for i in range(100):
         x = possible_keys[i]
 
         print(f"*** Insert {x} ***")
         tree[x] = x
-        print(tree.root())
+        # print(tree)
 
+    print(tree)
     print("OK!")
 
 
