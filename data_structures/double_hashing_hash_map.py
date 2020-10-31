@@ -1,7 +1,7 @@
 from .hash_map_base import HashMapBase
 from .map_base import MapBase
 
-from exercise1.utils import bitify, load_primes, binary_search
+from utils import bitify, load_primes, binary_search
 
 
 class DoubleHashingHashMap(HashMapBase):
@@ -85,7 +85,7 @@ class DoubleHashingHashMap(HashMapBase):
         self._bucket_setitem(j, k, v)  # subroutine maintains self._n
         if self._n > self._load_factor * self.capacity():  # keep load factor
             primes = load_primes()
-            _, index = binary_search(primes, 2 * self.capacity())
+            _, index = binary_search(primes, 2 * self.capacity() - 1)
             self._resize(primes[index])
 
     def __delitem__(self, k):
@@ -255,7 +255,7 @@ class DoubleHashingHashMap(HashMapBase):
         """Return True if index j is available in table."""
         return self._table[j] is None or self._table[j] is DoubleHashingHashMap._AVAIL
 
-    def _find_slot(self, j, k):
+    def _find_slot(self, j, k, count_collisions=False):
         """Search for key k in bucket at index j.
 
         Return (success, index) tuple, described as follows:
@@ -272,7 +272,8 @@ class DoubleHashingHashMap(HashMapBase):
             elif k == self._table[j]._key:
                 return True, j  # found a match
             j = (j + self._d(k)) % self.capacity()  # keep looking (cyclically)
-            self._collision_counter += 1  # collision found. increment counter
+            if count_collisions:
+                self._collision_counter += 1  # collision found. increment counter
 
     def _bucket_getitem(self, j, k):
         """
@@ -281,7 +282,7 @@ class DoubleHashingHashMap(HashMapBase):
         :param k: key to search
         :return: value associated to k
         """
-        found, s = self._find_slot(j, k)
+        found, s = self._find_slot(j, k, count_collisions=False)
         if not found:
             raise KeyError('Key Error: ' + repr(k))  # no match found
         return self._table[s]._value
@@ -294,7 +295,7 @@ class DoubleHashingHashMap(HashMapBase):
         :param v: value associated to k
         :return: None
         """
-        found, s = self._find_slot(j, k)
+        found, s = self._find_slot(j, k, count_collisions=True)
         if not found:
             self._table[s] = self._Item(k, v)  # insert new item
             self._n += 1  # size has increased
@@ -308,7 +309,7 @@ class DoubleHashingHashMap(HashMapBase):
         :param k: key to delete
         :return: None
         """
-        found, s = self._find_slot(j, k)
+        found, s = self._find_slot(j, k, count_collisions=False)
         if not found:
             raise KeyError('Key Error: ' + repr(k))  # no match found
         self._table[s] = DoubleHashingHashMap._AVAIL  # mark as vacated

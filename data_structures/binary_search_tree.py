@@ -208,7 +208,7 @@ class TreeMap(LinkedBinaryTree, MapBase):
             return None
         else:
             p = self.first()
-            return (p.key(), p.value())
+            return p.key(), p.value()
 
     def find_max(self):
         """Return (key,value) pair with maximum key (or None if empty)."""
@@ -216,7 +216,7 @@ class TreeMap(LinkedBinaryTree, MapBase):
             return None
         else:
             p = self.last()
-            return (p.key(), p.value())
+            return p.key(), p.value()
 
     def find_le(self, k):
         """Return (key,value) pair with greatest key less than or equal to k.
@@ -285,7 +285,7 @@ class TreeMap(LinkedBinaryTree, MapBase):
                 if p.key() < start:
                     p = self.after(p)
             while p is not None and (stop is None or p.key() < stop):
-                yield (p.key(), p.value())
+                yield p.key(), p.value()
                 p = self.after(p)
 
     # --------------------- hooks used by subclasses to balance a tree ---------------------
