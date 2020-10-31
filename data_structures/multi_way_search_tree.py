@@ -6,7 +6,6 @@ from .tree import Tree
 
 from utils import binary_search
 
-from random import randint
 
 class MultiWaySearchTree(Tree, MapBase):
     """
@@ -208,14 +207,46 @@ class MultiWaySearchTree(Tree, MapBase):
             found, p, i = self._subtree_search(self.root(), k)
             if not found:  # k is not in the tree
                 # Insert (k,v) in the tree
-                if not p.is_full():  # If p is not full, insert (k,v) in p
-                    # To mantain p keys ordered, we have to move keys from index i
-                    p._node._elements = p._node._elements[:i] + [MultiWaySearchTree._Item(k, v)] + p._node._elements[i:]
-                    # We also have to move the children from index i
-                    p._node._children = p._node._children[:i] + [None] + p._node._children[i:]
-                    # Increment the tree size
-                else:  # We have to handle overflows
-                    pass
+                smaller_node = None
+                bigger_node = None
+                while p is not None:
+                    if not p.is_full():  # If p is not full, insert (k,v) in p
+                        node = p._node
+                        # To mantain p keys ordered, we have to move keys from index i
+                        node._elements = node._elements[:i] + [self._Item(k, v)] + node._elements[i:]
+                        # We also have to move the children from index i
+                        node._children = node._children[:i] + [smaller_node, bigger_node] + node._children[i + 1:]
+                        break
+                    else:  # We have to handle overflows
+                        # Consider the keys saved in node p, plus k
+                        keys = p.keys()
+                        keys = keys[:i] + [k] + keys[i:]
+                        values = p.values()
+                        values = values[:i] + [v] + values[i:]
+                        # We split keys and values in three parts:
+                        #   the median key (km) and median value (vm),
+                        #   keys and values smaller than the km and vm (ks and vs),
+                        #   and keys and values larger than the km and vm (kb and vb)
+                        median = len(keys) // 2
+                        km, vm = keys[median], values[median]
+                        ks, vs = keys[:median], values[:median]
+                        kb, vb = keys[median + 1:], values[median + 1:]
+                        # With ks and vs we create a new node
+                        smaller_node = self._Node(self._a, self._b,
+                                                  [self._Item(k, v) for k, v in zip(ks, vs)])
+                        # With kb and vb we create a new node
+                        bigger_node = self._Node(self._a, self._b,
+                                                 [self._Item(k, v) for k, v in zip(kb, vb)])
+                        # km is inserted in the parent of p with a pointer to the new nodes
+                        p = self.parent(p)
+                        if p is None:  # if p is root
+                            # A new root is created
+                            self._root = self._Node(self._a, self._b, [self._Item(km, vm)])
+                            root = self._make_position(self._root)
+                            root._node._children[0] = smaller_node
+                            root._node._children[1] = bigger_node
+
+                # Increment the tree size
                 self._size += 1
             else:  # k is in p at index i, substitute old value with v
                 p._node._elements[i]._value = v
