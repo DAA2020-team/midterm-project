@@ -23,6 +23,8 @@ def change(value, currency, decimal=2) -> Tuple[List, int]:
     """
     needed_denominations = [(e, e) for e in currency.iter_denominations(reverse=True) if e <= value]
     queue = HeapPriorityQueue(contents=needed_denominations)
+    if queue.is_empty():
+        raise ValueError("The currency " + str(currency._code) + " does not have any denomination.")
     used_den = []
     while round(value, decimal) > 0:
         m, _ = queue.remove_max()
@@ -70,8 +72,13 @@ def get_currency(c="EUR", d=None):
 
 
 def main():
-    cur = get_currency()
-    dens, den_number = change(0, cur)
+    cur = get_currency(d=[])
+    dens = []
+    den_number = 0
+    try:
+        dens, den_number = change(123.52, cur)
+    except ValueError as e:
+        print(e)
     print(dens)
     print(den_number)
 
