@@ -1,6 +1,6 @@
 from data_structures.avl_tree import AVLTreeMap
 from data_structures.double_hashing_hash_map import DoubleHashingHashMap
-import currency.utils as utils
+import utils as utils
 
 
 class Currency:

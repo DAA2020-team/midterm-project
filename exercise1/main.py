@@ -1,5 +1,5 @@
 from data_structures.double_hashing_hash_map import DoubleHashingHashMap
-from exercise1.utils import load_primes
+from utils import load_primes
 from iso4217 import Currency as cur
 
 

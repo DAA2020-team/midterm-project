@@ -1,4 +1,4 @@
-from currency.Currency import Currency
+from exercise2.currency import Currency
 
 
 cur = Currency("EUR")
