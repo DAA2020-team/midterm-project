@@ -6,6 +6,7 @@ from .tree import Tree
 
 from utils import binary_search
 
+from random import randint
 
 class MultiWaySearchTree(Tree, MapBase):
     """
@@ -33,7 +34,7 @@ class MultiWaySearchTree(Tree, MapBase):
         children is a list of _Node, i.e. links to the node's children
         """
 
-        __slots__ = '_a', '_b', '_elements', '_parent', '_children', '_num_children'
+        __slots__ = '_a', '_b', '_elements', '_parent', '_children'
 
         def __init__(self, a: int, b: int, elements: List, parent=None, children=None):
             if elements is None or not a - 1 <= len(elements) <= b - 1:
@@ -85,6 +86,15 @@ class MultiWaySearchTree(Tree, MapBase):
             """Returns the string representation of the Position"""
             return repr(self._node)
 
+        def is_empty(self):
+            return len(self) == 0
+
+        def is_full(self):
+            return len(self) == self._node._b - 1
+
+        def __len__(self):
+            return len(self.element())
+
     # ------------------------------- utility methods -------------------------------
 
     def _validate(self, p) -> _Node:
@@ -131,10 +141,11 @@ class MultiWaySearchTree(Tree, MapBase):
         self._root = self._Node(self._a, self._b, [e])
         return self._make_position(self._root)
 
-    def _subtree_search(self, p: Position, k) -> Tuple[Position, int]:
+    def _subtree_search(self, p: Position, k) -> Tuple[bool, Position, int]:
         """
         Searches key k in the subtree rooted at p.
         Returns:
+            True if k is found, False otherwise
             Position of p's subtree having key k,
             index of the key k in the keys list of the position,
             or last node and index searched.
@@ -147,12 +158,12 @@ class MultiWaySearchTree(Tree, MapBase):
 
         # Successful search
         if found:
-            return p, index
+            return True, p, index
 
-        # Next position to search in the child next to p.keys()[index]
+        # Next position to search in is the child next to p.keys()[index]
         next_position = self._make_position(node._children[index + 1])
         if next_position is None:
-            return None, index + 1
+            return False, p, index + 1
         return self._subtree_search(next_position, k)
 
     # -------------------------- PUBLIC METHODS --------------------------
@@ -162,7 +173,7 @@ class MultiWaySearchTree(Tree, MapBase):
         return self._size
 
     def root(self):
-        """Return the root Position of the alberi (or None if tree is empty)."""
+        """Return the root Position of the tree (or None if tree is empty)."""
         return self._make_position(self._root)
 
     def parent(self, p):
@@ -190,9 +201,25 @@ class MultiWaySearchTree(Tree, MapBase):
         :return: None
         """
         if self.is_empty():
+            # If the tree is empty, we add a root
             leaf = self._add_root(self._Item(k, v))
         else:
-
+            # Search for the node p that should contain k
+            found, p, i = self._subtree_search(self.root(), k)
+            if not found:  # k is not in the tree
+                # Insert (k,v) in the tree
+                if not p.is_full():  # If p is not full, insert (k,v) in p
+                    # To mantain p keys ordered, we have to move keys from index i
+                    p._node._elements = p._node._elements[:i] + [MultiWaySearchTree._Item(k, v)] + p._node._elements[i:]
+                    # We also have to move the children from index i
+                    p._node._children = p._node._children[:i] + [None] + p._node._children[i:]
+                    # Increment the tree size
+                else:  # We have to handle overflows
+                    pass
+                self._size += 1
+            else:  # k is in p at index i, substitute old value with v
+                p._node._elements[i]._value = v
+                pass
             pass
 
     def __delitem__(self, v):
