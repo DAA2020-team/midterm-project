@@ -1,12 +1,16 @@
 from math import ceil
-from typing import Tuple
+from typing import Tuple, List
 
 from .map_base import MapBase
 from .tree import Tree
 
+from utils import binary_search
 
 
 class MultiWaySearchTree(Tree, MapBase):
+    """
+    Sorted map implementation using a multi-way seach tree, with parametrizable dimensions.
+    """
 
     # ------------------------------- NESTED _Item CLASS -------------------------------
 
@@ -22,16 +26,18 @@ class MultiWaySearchTree(Tree, MapBase):
     class _Node:
         """
         Lightweight, nonpublic class for storing a node.
-        elements is a list of _Item: _Item is a (key-value)
+        a is the minimum number of children for each node, thus the minimum number of keys for each node is a - 1
+        b is the maximum number of children for each node, thus the maximum number of keys for each node is b - 1
+        elements is a list of _Item: _Item is a (key-value) pair
         parent is the node's parent
-        children is a list of links to the node's children
+        children is a list of _Node, i.e. links to the node's children
         """
 
-        __slots__ = '_a', '_b', '_elements', '_parent', '_children', '_num_children'  # streamline memory usage
+        __slots__ = '_a', '_b', '_elements', '_parent', '_children', '_num_children'
 
-        def __init__(self, a, b, elements, parent=None, children=None):
+        def __init__(self, a: int, b: int, elements: List, parent=None, children=None):
             if elements is None or not a - 1 <= len(elements) <= b - 1:
-                raise ValueError(f"size of elements must be in [{a - 1}, {b - 1}]")
+                raise ValueError(f"size of elements must be in [{a - 1}, {b - 1}]. Found {len(elements)}")
             self._a = a
             self._b = b
             self._elements = elements
@@ -45,7 +51,8 @@ class MultiWaySearchTree(Tree, MapBase):
     # ------------------------------- NESTED Position CLASS -------------------------------
 
     class Position(Tree.Position):
-        """An abstraction representing the location of a single element within a tree.
+        """
+        An abstraction representing the location of a single element within a tree.
         Note that two position instaces may represent the same inherent location in a tree.
         Therefore, users should always rely on syntax 'p == q' rather than 'p is q' when testing
         equivalence of positions.
@@ -104,10 +111,8 @@ class MultiWaySearchTree(Tree, MapBase):
         :param a: minimum number of children of each node
         :param b: maximum number of children of each node
         """
-        if a < 2:
-            raise ValueError("a must be greater or equal to 2")
-        if not a <= ceil((b - 1) / 2):
-            raise ValueError("a must be greater at most ceil((b - 1) / 2)")
+        if not 2 <= a <= ceil((b - 1) / 2):
+            raise ValueError(f"a must be in [2, {ceil((b - 1) / 2)}]. Found {a}")
         self._a = a
         self._b = b
         self._root = None
@@ -115,8 +120,9 @@ class MultiWaySearchTree(Tree, MapBase):
 
     # -------------------------- PRIVATE METHODS --------------------------
 
-    def _add_root(self, e):
-        """Place element e at the root of an empty tree and return new Position.
+    def _add_root(self, e: _Item):
+        """
+        Places element e at the root of an empty tree and return new Position.
         Raise ValueError if tree is non-empty.
         """
         if self._root is not None:
@@ -127,6 +133,7 @@ class MultiWaySearchTree(Tree, MapBase):
 
     def _subtree_search(self, p: Position, k) -> Tuple[Position, int]:
         """
+        Searches key k in the subtree rooted at p.
         Returns:
             Position of p's subtree having key k,
             index of the key k in the keys list of the position,
@@ -142,7 +149,7 @@ class MultiWaySearchTree(Tree, MapBase):
         if found:
             return p, index
 
-        # Next position to search in is the child next to p.keys()[index]
+        # Next position to search in the child next to p.keys()[index]
         next_position = self._make_position(node._children[index + 1])
         if next_position is None:
             return None, index + 1
@@ -176,6 +183,12 @@ class MultiWaySearchTree(Tree, MapBase):
                 yield self._make_position(child)
 
     def __setitem__(self, k, v):
+        """
+        Inserts a new (key-value) item in the tree
+        :param k: the key of the item to insert
+        :param v: the value of the item to insert
+        :return: None
+        """
         if self.is_empty():
             leaf = self._add_root(self._Item(k, v))
         else:

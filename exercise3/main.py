@@ -18,7 +18,7 @@ def main():
         print("Here")
         print(child)
 
-    print(tree._subtree_search(tree.root(), 18))
+    print(tree._subtree_search(tree.root(), 65))
 
     print("OK!")
 
