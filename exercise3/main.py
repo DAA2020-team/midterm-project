@@ -34,6 +34,12 @@ def main():
         tree[x] = int(str(x) * 2)
         # print(tree)
 
+    del tree[6]
+    del tree[7]
+
+    print(tree)
+
+    del tree[5]
     print(tree)
 
     print("OK!")

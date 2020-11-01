@@ -241,6 +241,56 @@ class MultiWaySearchTree(Tree, MapBase):
                 p._node._children[median + 1 + j]._parent = bigger_node
         return smaller_node, self._Item(km, vm), bigger_node
 
+    def _left_transfer(self, i: int, v: Position, w: Position):
+        """
+        Resolves v's underflow with a transfer with the left sibling of v, i.e. w
+        :param i: the index of the Item with key k to delete in v
+        :param v: the Position of the node in underflow
+        :param w: the left sibling of v
+        :return: None
+        """
+        v_node = self._validate(v)
+        w_node = self._validate(w)
+        # Let k' be the key saved in the parent p that is between the keys contained in w and v
+        # Let new_item be the item in p with key k'
+        p = self.parent(v)
+        _, index = binary_search(p.keys(), v_node._elements[0]._key)
+        new_item = p.element()[index]
+        # Let k'' be the largest key saved in w
+        # Let rightmost_item be the item in w with key k''
+        rightmost_item = w_node._elements[-1]
+        # Delete k from v, and add k' in v
+        v_node._elements.pop(i)
+        v_node._elements = [new_item] + v_node._elements
+        # Delete k'' from w
+        w_node._elements.pop()
+        w_node._children.pop()
+        # Replace k' with k'' in p
+        p.element()[index] = rightmost_item
+
+    def _right_transfer(self, i: int, v: Position, w: Position):
+        """
+        Resolves v's underflow with a transfer with the right sibling of v, i.e. w
+        :param i: the index of the Item with key k to delete in v
+        :param v: the Position of the node in underflow
+        :param w: the right sibling of v
+        :return: None
+        """
+        v_node = self._validate(v)
+        w_node = self._validate(w)
+
+    def _transfer(self, i: int, v: Position, w: Position, left=True):
+        """
+        Resolves v's underflow with a transfer with the sibling of v, i.e. w
+        :param i: the index of the Item with key k to delete in v
+        :param v: the Position of the node in underflow
+        :param w: the sibling of v
+        :return: None
+        """
+        self._validate(v)
+        self._validate(w)
+        return self._left_transfer(i, v, w) if left else self._right_transfer(i, v, w)
+
     # -------------------------- PUBLIC METHODS --------------------------
 
     def __len__(self):
@@ -272,6 +322,24 @@ class MultiWaySearchTree(Tree, MapBase):
         """Returns True if p is a leaf, False otherwise"""
         self._validate(p)
         return self.num_children(p) == 0
+
+    def left_sibling(self, p: Position) -> Position:
+        """Returns the Position of the node to the left of p"""
+        node = self._validate(p)
+        parent = self.parent(p)
+        _, i = binary_search(parent.keys(), p.element()[0]._key)
+        if i < 0:  # p is the leftmost child of parent
+            return None  # left sibling of p does not exist
+        return self._make_position(parent._node._children[i])
+
+    def right_sibling(self, p: Position) -> Position:
+        """Returns the Position of the node to the right of p"""
+        node = self._validate(p)
+        parent = self.parent(p)
+        _, i = binary_search(parent.keys(), p.element()[0]._key)
+        if i >= len(parent) - 1:  # p is the rightmost child of parent
+            return None  # right sibling of p does not exist
+        return self._make_position(parent._node._children[i + 2])
 
     def __setitem__(self, k, v):
         """
@@ -351,9 +419,18 @@ class MultiWaySearchTree(Tree, MapBase):
                             p = ps
                             i = 0
                     else:  # We have to handle underflow
-                        # If the node w on the left of v has more than a - 1 items, then perform a transfer
-                        # Check if v has left sibling
-                        pass
+                        # If the node w on the left of v has more than a - 1 items, then perform a left-transfer
+                        w = self.left_sibling(p)
+                        if len(w) > self._a - 1:
+                            self._transfer(i, p, w, left=True)
+                            break
+                        # If the node w on the right of v has more than a - 1 items, then perform a right-transfer
+                        w = self.right_sibling(p)
+                        if len(w) > self._a - 1:
+                            self._transfer(i, p, w, left=False)
+                            break
+                        # Otherwise perform a fusion
+                        # self._fusion(p, w)
                 self._size -= 1
                 return
         raise KeyError('Key Error: ' + repr(k))
