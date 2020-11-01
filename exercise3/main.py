@@ -34,12 +34,17 @@ def main():
         tree[x] = int(str(x) * 2)
         # print(tree)
 
-    del tree[6]
-    del tree[7]
+    for i in range(43, 49):
+        del tree[i]
+
+    del tree[49]
+
+    for i in range(51, 53):
+        del tree[i]
 
     print(tree)
 
-    del tree[5]
+    del tree[54]
     print(tree)
 
     print("OK!")
