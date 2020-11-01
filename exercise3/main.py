@@ -1,9 +1,11 @@
-from random import shuffle
+from random import shuffle, seed
 
 from data_structures.multi_way_search_tree import MultiWaySearchTree
 
 
 def main():
+    seed(2020)
+
     tree = MultiWaySearchTree()
 
     tree[17] = 104
@@ -23,16 +25,17 @@ def main():
     print(f"*** Search {x} ***")
     print(tree._subtree_search(tree.root(), x))
 
-    possible_keys = list(range(101))
+    possible_keys = list(range(100))
     shuffle(possible_keys)
     for i in range(100):
         x = possible_keys[i]
 
         print(f"*** Insert {x} ***")
-        tree[x] = x
+        tree[x] = int(str(x) * 2)
         # print(tree)
 
     print(tree)
+
     print("OK!")
 
 

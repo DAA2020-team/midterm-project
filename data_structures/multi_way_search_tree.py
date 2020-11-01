@@ -171,6 +171,18 @@ class MultiWaySearchTree(Tree, MapBase):
             return False, p, index + 1
         return self._subtree_search(next_position, k)
 
+    def _subtree_min(self, p: Position) -> Position:
+        """
+        Returns the Position with smallest key in the subtree rooted at p.
+        :param p: the root of the subtree
+        :return: Position with the smallest key in the subtree rooted at p
+        """
+        # Validate
+        node = self._validate(p)
+        if node._children[0] is not None:
+            return self._subtree_min(self._make_position(node._children[0]))
+        return p
+
     def _subtree_repr(self, p: Position, level: int, children_counter: int) -> str:
         """Returns the string representation of the subtree rooted at p"""
         string = ""
@@ -246,8 +258,8 @@ class MultiWaySearchTree(Tree, MapBase):
 
     def num_children(self, p):
         """Return the number of children that Position p has."""
-        node = self._validate(p)
-        return len(list(filter(lambda x: x is not None, node._children)))
+        self._validate(p)
+        return len(list(self.children(p)))
 
     def children(self, p):
         """Generate an iteration of Positions representing p's children."""
@@ -255,6 +267,11 @@ class MultiWaySearchTree(Tree, MapBase):
         for child in node._children:
             if child is not None:
                 yield self._make_position(child)
+
+    def is_leaf(self, p: Position) -> bool:
+        """Returns True if p is a leaf, False otherwise"""
+        self._validate(p)
+        return self.num_children(p) == 0
 
     def __setitem__(self, k, v):
         """
@@ -306,11 +323,50 @@ class MultiWaySearchTree(Tree, MapBase):
                 p._node._elements[i]._value = v
             pass
 
-    def __delitem__(self, v):
-        pass
+    def __delitem__(self, k):
+        """Remove item associated with key k (raise KeyError if not found)."""
+        if not self.is_empty():
+            # Search for the node v that contains k
+            found, p, i = self._subtree_search(self.root(), k)
+            if found:
+                while True:
+                    v = p._node
+                    # If v contains more than a - 1 item or it is the root, delete the item
+                    if len(v) > self._a - 1 or p == self.root():
+                        # If v is a leaf, we can delete k directly
+                        if self.is_leaf(p):
+                            # Delete the item at index i
+                            v._elements.pop(i)
+                            # Delete the corresponding child to the right of k
+                            v._children.pop(i + 1)
+                            break
+                        else:
+                            # Let ps be the position with smallest key in the subtree to the right of k
+                            ps = self._subtree_min(self._make_position(v._children[i + 1]))
+                            # Replace the item with key k with the first item of ps
+                            temp = v._elements[i]
+                            v._elements[i] = ps.element()[0]
+                            ps.element()[0] = temp
+                            # Delete the first item of ps from its subtree
+                            p = ps
+                            i = 0
+                    else:  # We have to handle underflow
+                        # If the node w on the left of v has more than a - 1 items, then perform a transfer
+                        # Check if v has left sibling
+                        pass
+                self._size -= 1
+                return
+        raise KeyError('Key Error: ' + repr(k))
 
     def __getitem__(self, k):
-        pass
+        """Return value associated with key k (raise KeyError if not found)."""
+        if self.is_empty():
+            raise KeyError('Key Error: ' + repr(k))
+        else:
+            found, p, i = self._subtree_search(self.root(), k)
+            if not found:
+                raise KeyError('Key Error: ' + repr(k))
+            return p.values()[i]
 
     def __repr__(self):
         """Returns the string representation of the tree, level by level"""
