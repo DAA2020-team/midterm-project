@@ -239,7 +239,10 @@ class Currency:
         identical to the ones of the current currency.
         :return: the copied object whose attribute are equivalent but not identical to the original object
         """
-        c = Currency(self._code)
+
+        # workaround, since strings in Python are immutable and two strings refers to the same memory area
+        temp_code = (self._code + '.')[:-1]
+        c = Currency(temp_code)
         for e in self._denominations.breadthfirst():
             c._denominations[e.key()] = e.value()
         # there are only float or int in the map, so this copy is fine and does not require recursive deep copies
