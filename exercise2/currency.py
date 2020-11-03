@@ -240,7 +240,7 @@ class Currency:
         :return: the copied object whose attribute are equivalent but not identical to the original object
         """
 
-        # workaround, since strings in Python are immutable and two strings refers to the same memory area
+        # workaround, since strings in Python are immutable and two identical strings refers to the same memory area
         temp_code = (self._code + '.')[:-1]
         c = Currency(temp_code)
         for e in self._denominations.breadthfirst():
