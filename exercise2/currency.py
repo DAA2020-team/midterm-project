@@ -179,8 +179,8 @@ class Currency:
         :raises ValueError: if the currency code is already present, if the change is not valid or the currency code
         does not follow the ISO4217 format
         """
-        if currency_code == self._code and change != 1:
-            raise ValueError("Same currency code implies change equals to 1")
+        if currency_code == self._code:
+            raise ValueError("Cannot add a change of the same currency.")
         self._raise_ex_if_value_not_int_or_float(change)
         self._raise_ex_if_code_not_valid(currency_code)
 
