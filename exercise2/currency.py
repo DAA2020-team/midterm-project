@@ -238,7 +238,7 @@ class Currency:
 
     def deep_copy(self):
         """
-        Create a new object Currency whose attributes are equivalent but not
+        Create a new object Currency whose attributes are equivalent and not
         identical to the ones of the current currency.
         :return: the copied object whose attribute are equivalent but not identical to the original object
         """
@@ -248,8 +248,14 @@ class Currency:
         c = Currency(temp_code)
         for e in self._denominations.breadthfirst():
             c._denominations[e.key()] = e.value()
-        # there are only float or int in the map, so this copy is fine and does not require recursive deep copies
-        c._changes._table = self._changes._table[:]
+        # there are only float or int in the map as values and string as keys, so this copy is sufficient and does
+        # not require recursive deep copies
+        for i, e in enumerate(self._changes._table):
+            if isinstance(e, DoubleHashingHashMap._Item):
+                c._changes._table[i] = DoubleHashingHashMap._Item(e._key, e._value)
+            else:
+                c._changes._table[i] = e
+
         c._changes._n = self._changes._n
 
         # a copy needs to be equivalent, this two values are random during the initialization

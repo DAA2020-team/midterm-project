@@ -69,6 +69,7 @@ print(cur_copy.get_change("USD"))
 print("\n\n\n")
 
 cur_deepcopy = cur.deep_copy()
+cur.update_change("USD", 1)
 cur_deepcopy.update_change("USD", 10)
 print(cur.get_change("USD"))
 print(cur_deepcopy.get_change("USD"))
@@ -101,3 +102,5 @@ for i in cur.iter_denominations():
 
 for i in cur_deepcopy._changes._table:
     print(cur)
+
+
