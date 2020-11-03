@@ -14,6 +14,9 @@ class Currency:
         self._denominations = AVLTreeMap()
         self._changes = DoubleHashingHashMap()
 
+    def __str__(self):
+        return str(self._code + ":\nDenominations: " + str(self._denominations) + "\nChanges: " + str(self._changes))
+
     @staticmethod
     def _raise_ex_if_code_not_valid(c):
         if utils.validate_iso_code(c) is False:

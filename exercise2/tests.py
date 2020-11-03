@@ -28,7 +28,10 @@ for i in cur.iter_denominations():
 for i in cur.iter_denominations(True):
     print(i)
 
-cur.add_change("EUR", 1)
+try:
+    cur.add_change("EUR", 1)
+except ValueError:
+    print("Cannot add a change of the same currency.")
 cur.add_change("USD", 10)
 cur.add_change("JPY", 199)
 
@@ -96,6 +99,5 @@ cur_deepcopy.del_denomination(225)
 for i in cur.iter_denominations():
     print(i)
 
-
-cur.add_change("EUR", 1)
-cur.update_change("EUR", -10)
+for i in cur_deepcopy._changes._table:
+    print(cur)
