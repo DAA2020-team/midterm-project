@@ -72,7 +72,7 @@ def get_currency(c="EUR", d=None):
     :return: the new currency
     """
     if d is None:
-        d = [0.05, 0.1, 0.2, 0.5, 1, 2, 5, 10, 20, 50, 100, 200, 500]
+        d = [0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1, 2, 5, 10, 20, 50, 100, 200, 500]
     cur = Currency(c)
     for i in d:
         cur.add_denomination(i)
