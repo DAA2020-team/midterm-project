@@ -73,12 +73,14 @@ class HeapPriorityQueue(PriorityQueueBase):  # base class defines _Item
             self._downheap(j)
 
     # ------------------------------ public behaviors ------------------------------
-    def __init__(self, contents=None):
+    def __init__(self, contents=None, is_sorted=False):
         """Create a new empty Priority Queue.
         :param contents: list of (key, value) pairs, which will be set in the data structure
+        :param is_sorted: if contents is provided and this is true, the initialization will not
+                            perform the heapify operation.
         """
         self._data = [self._Item(k, v) for k, v in contents]
-        if len(self._data) > 1:
+        if len(self._data) > 1 and not is_sorted:
             self._heapify()
 
     def __len__(self):

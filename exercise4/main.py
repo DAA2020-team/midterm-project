@@ -22,11 +22,19 @@ def change(value, currency, decimal=2) -> Tuple[List, int]:
     :return: a 2 element tuple, the list of the used denominations and its length
     """
     needed_denominations = [(e, e) for e in currency.iter_denominations(reverse=True) if e <= value]
-    queue = HeapPriorityQueue(contents=needed_denominations)
+    # Because this list is contructed in a decreasing order, it can be considered as an array rappresentation
+    # of an heap. Hence, during the initialization of the ADT PriorityQueue, it is unnecessary to perform the
+    # the heapify operation (which will check the entire array leaving as it is). The parameter is_sorted, is
+    # used to indicate that the list is already sorted in such a way that it is a valid array rappresentation
+    # of an heap.
+    queue = HeapPriorityQueue(contents=needed_denominations, is_sorted=True)
     if queue.is_empty():
         raise ValueError("The currency " + str(currency._code) + " does not have any denomination.")
     used_den = []
     while round(value, decimal) > 0:
+        if queue.is_empty():
+            raise ValueError("The value and the denominations are not compatible (e.g. value is 1.01 and the smaller "
+                             "denomination is 1.0).")
         m, _ = queue.remove_max()
         while round(value - m, decimal) >= 0:
             value = round(value - m, decimal)
@@ -64,7 +72,7 @@ def get_currency(c="EUR", d=None):
     :return: the new currency
     """
     if d is None:
-        d = [0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1, 2, 5, 10, 20, 50, 100, 200, 500]
+        d = [0.05, 0.1, 0.2, 0.5, 1, 2, 5, 10, 20, 50, 100, 200, 500]
     cur = Currency(c)
     for i in d:
         cur.add_denomination(i)
@@ -85,4 +93,4 @@ def main():
 
 if __name__ == '__main__':
     main()
-    test(manual=False)
+    test(manual=True)
