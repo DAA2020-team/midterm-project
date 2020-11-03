@@ -32,6 +32,9 @@ def change(value, currency, decimal=2) -> Tuple[List, int]:
         raise ValueError("The currency " + str(currency._code) + " does not have any denomination.")
     used_den = []
     while round(value, decimal) > 0:
+        if queue.is_empty():
+            raise ValueError("The value and the denominations are not compatible (e.g. value is 1.01 and the smaller "
+                             "denomination is 1.0).")
         m, _ = queue.remove_max()
         while round(value - m, decimal) >= 0:
             value = round(value - m, decimal)
@@ -69,7 +72,7 @@ def get_currency(c="EUR", d=None):
     :return: the new currency
     """
     if d is None:
-        d = [0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1, 2, 5, 10, 20, 50, 100, 200, 500]
+        d = [0.05, 0.1, 0.2, 0.5, 1, 2, 5, 10, 20, 50, 100, 200, 500]
     cur = Currency(c)
     for i in d:
         cur.add_denomination(i)
