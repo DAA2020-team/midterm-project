@@ -85,6 +85,9 @@ def main():
 
     print(tree)
 
+    del tree[55]
+    print(tree)
+
 
     print("OK!")
 

@@ -98,6 +98,9 @@ class MultiWaySearchTree(Tree, MapBase):
         def is_overflow(self):
             return len(self) > self._node._b - 1
 
+        def is_underflow(self):
+            return len(self) < self._node._a -1
+
         def __len__(self):
             return len(self.element())
 
@@ -242,7 +245,7 @@ class MultiWaySearchTree(Tree, MapBase):
                 p._node._children[median + 1 + j]._parent = bigger_node
         return smaller_node, self._Item(km, vm), bigger_node
 
-    def _left_transfer(self, i: int, v: Position, w: Position):
+    def _left_transfer(self, v: Position, w: Position):
         """
         Resolves v's underflow with a transfer with the left sibling of v, i.e. w
         :param i: the index of the Item with key k to delete in v
@@ -256,21 +259,23 @@ class MultiWaySearchTree(Tree, MapBase):
         # Let k' be the key saved in the parent p that is between the keys contained in w and v
         # Let new_item be the Item in p with key k'
         p = self.parent(v)
-        _, index = binary_search(p.keys(), v_node._elements[0]._key)
+        _, index = binary_search(p.keys(), w_node._elements[0]._key)
+        index = index + 1
         new_item = p.element()[index]
         # Let k'' be the largest key saved in w
         # Let rightmost_item be the item in w with key k''
         rightmost_item = w_node._elements[-1]
+        rightmost_child = w_node._children[-1]
         # Delete k from v, and add k' in v
-        v_node._elements.pop(i)
         v_node._elements = [new_item] + v_node._elements
+        v_node._children = [rightmost_child] + v_node._children
         # Delete k'' from w
         w_node._elements.pop()
         w_node._children.pop()
         # Replace k' with k'' in p
         p.element()[index] = rightmost_item
 
-    def _right_transfer(self, i: int, v: Position, w: Position):
+    def _right_transfer(self, v: Position, w: Position):
         """
         Resolves v's underflow with a transfer with the right sibling of v, i.e. w
         :param i: the index of the Item with key k to delete in v
@@ -289,16 +294,17 @@ class MultiWaySearchTree(Tree, MapBase):
         # Let k'' be the smallest key saved in w
         # Let leftmost_item be the item in w with key k''
         leftmost_item = w_node._elements[0]
+        leftmost_child = w_node._children[0]
         # Delete k from v, and add k' in v
-        v_node._elements.pop(i)
         v_node._elements = v_node._elements + [new_item]
+        v_node._children = v_node._children + [leftmost_child]
         # Delete k'' from w
         w_node._elements.pop(0)
         w_node._children.pop(0)
         # Replace k' with k'' in p
         p.element()[index] = leftmost_item
 
-    def _transfer(self, i: int, v: Position, w: Position, left=True):
+    def _transfer(self, v: Position, w: Position, left=True):
         """
         Resolves v's underflow with a transfer with the sibling of v, i.e. w
         :param i: the index of the Item with key k to delete in v
@@ -308,9 +314,9 @@ class MultiWaySearchTree(Tree, MapBase):
         """
         self._validate(v)
         self._validate(w)
-        return self._left_transfer(i, v, w) if left else self._right_transfer(i, v, w)
+        return self._left_transfer(v, w) if left else self._right_transfer(v, w)
 
-    def _fusion(self, i: int, v: Position, w: Position):
+    def _fusion(self, v: Position, w: Position, left=True) -> Position:
         """
         Resolves v's underflow with a fusion with the sibling of v, i.e. w
         :param i: the index of the Item with key k to delete in v
@@ -321,28 +327,27 @@ class MultiWaySearchTree(Tree, MapBase):
         # Validate
         v_node = self._validate(v)
         w_node = self._validate(w)
-        # Understand if w is the left or right sibling of v
-        left = w.element()[-1]._key < v.element()[0]._key
         # Let p be the parent of v and w
         p = self.parent(v)
         # Let k' be the key saved in p in between the keys of v and w
         # Let new_item be the Item in p with key k'
+        _, index = binary_search(p.keys(), w_node._elements[0]._key)
         if left:  # If w is the left sibling of v
-            _, index = binary_search(p.keys(), v_node._elements[0]._key)
-        else:  # If w is the right sibling of v
-            _, index = binary_search(p.keys(), w_node._elements[0]._key)
+            index = index + 1
         new_item = p._node._elements[index]
         # Create a new node containing all keys of v except k, all keys of w and key k'
-        v_node._elements.pop(i)
         new_node = self._Node(self._a, self._b,
                               w_node._elements + [new_item] + v_node._elements if left else
                               v_node._elements + [new_item] + w_node._elements,
-                              parent=p._node)
+                              parent=p._node,
+                              children=w_node._children + v_node._children if left else
+                              v_node._children + w_node._children)
         p.element().pop(index)
         p._node._children.pop(index)
         p._node._children[index] = new_node
         # v and w do not belong to the tree anymore
         v = w = None
+        return self._make_position(new_node)
 
     # -------------------------- PUBLIC METHODS --------------------------
 
@@ -446,51 +451,56 @@ class MultiWaySearchTree(Tree, MapBase):
                 self._size += 1
             else:  # k is in p at index i, substitute old value with v
                 p._node._elements[i]._value = v
-            pass
 
     def __delitem__(self, k):
         """Remove item associated with key k (raise KeyError if not found)."""
         if not self.is_empty():
-            # Search for the node v that contains k
             found, p, i = self._subtree_search(self.root(), k)
             if found:
                 while True:
                     v = p._node
-                    if self.is_leaf(p):
-                        # If v contains more than a - 1 item or it is the root, delete the item
-                        if len(v) > self._a - 1 or p == self.root():
+                    if not p.is_underflow():
+                        if self.is_leaf(p):
                             # Delete the item at index i
                             v._elements.pop(i)
                             # Delete the corresponding child to the right of k
                             v._children.pop(i + 1)
-                            break
-                        else:  # We have to handle underflow
-                            # If the node w on the left of v has more than a - 1 items, then perform a left-transfer
-                            w = self.left_sibling(p, k)
-                            if w is not None and len(w) > self._a - 1:
-                                self._transfer(i, p, w, left=True)
+                            if not p.is_underflow():
                                 break
-                            # If the node w on the right of v has more than a - 1 items, then perform a right-transfer
-                            w = self.right_sibling(p)
-                            if w is not None and len(w) > self._a - 1:
-                                self._transfer(i, p, w, left=False)
-                                break
-                            # Otherwise perform a fusion
-                            # Let w be the node on the left (or on the right) of v
-                            w = self.left_sibling(p, k) or self.right_sibling(p)
-                            self._fusion(i, p, w)
-                            break
+                        else:
+                            # Let ps be the position with smallest key in the subtree to the right of k
+                            ps = self._subtree_min(self._make_position(v._children[i + 1]))
+                            k = ps._node._elements[0]._key
+                            # Replace the item with key k with the first item of ps
+                            temp = v._elements[i]
+                            v._elements[i] = ps.element()[0]
+                            ps.element()[0] = temp
+                            # Delete the first item of ps from its subtree
+                            p = ps
+                            i = 0
                     else:
-                        # Let ps be the position with smallest key in the subtree to the right of k
-                        ps = self._subtree_min(self._make_position(v._children[i + 1]))
-                        k = ps._node._elements[0]._key
-                        # Replace the item with key k with the first item of ps
-                        temp = v._elements[i]
-                        v._elements[i] = ps.element()[0]
-                        ps.element()[0] = temp
-                        # Delete the first item of ps from its subtree
-                        p = ps
-                        i = 0
+                        # If the node w on the left of v has more than a - 1 items, then perform a left-transfer
+                        w = self.left_sibling(p, k)
+                        if w is not None and len(w) > self._a - 1:
+                            self._transfer(p, w, left=True)
+                            break
+                        # If the node w on the right of v has more than a - 1 items, then perform a right-transfer
+                        w = self.right_sibling(p, k)
+                        if w is not None and len(w) > self._a - 1:
+                            self._transfer(p, w, left=False)
+                            break
+                        # Otherwise perform a fusion
+                        # Let w be the node on the left (or on the right) of v
+                        w = self.left_sibling(p, k)
+                        if w is not None:
+                            f = self._fusion(p, w, left=True)
+                        else:
+                            w = self.right_sibling(p, k)
+                            f = self._fusion(p, w, left=False)
+                        p = self.parent(f)
+                        if not p.is_underflow():
+                            break
+
                 self._size -= 1
                 return
         raise KeyError('Key Error: ' + repr(k))
