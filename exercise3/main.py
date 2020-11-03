@@ -47,6 +47,45 @@ def main():
     del tree[54]
     print(tree)
 
+    for i in range(57, 61):
+        del tree[i]
+
+    print(tree)
+
+    for i in range(63, 65):
+        del tree[i]
+
+    print(tree)
+
+    for i in range(67, 73):
+        print("Deleting " + str(i))
+        del tree[i]
+        print(tree)
+
+    del tree[50]
+    print(tree)
+
+    del tree[73]
+    print(tree)
+
+    del tree[61]
+    print(tree)
+
+    del tree[53]
+    print(tree)
+
+    del tree[62]
+    print(tree)
+
+    del tree[65]
+    print(tree)
+
+    for i in range(75, 81):
+        del tree[i]
+
+    print(tree)
+
+
     print("OK!")
 
 

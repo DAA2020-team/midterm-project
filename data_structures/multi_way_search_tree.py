@@ -1,5 +1,5 @@
 from math import ceil
-from typing import Tuple, List
+from typing import Tuple, List, Optional
 
 from .map_base import MapBase
 from .tree import Tree
@@ -37,7 +37,8 @@ class MultiWaySearchTree(Tree, MapBase):
 
         def __init__(self, a: int, b: int, elements: List, parent=None, children=None):
             if elements is None or not a - 1 <= len(elements) <= b - 1:
-                raise ValueError(f"size of elements must be in [{a - 1}, {b - 1}]. Found {len(elements)}")
+                raise ValueError(f"size of elements must be in [{a - 1}, {b - 1}]."
+                                 f" Found {len(elements) if elements is not None else None}")
             self._a = a
             self._b = b
             self._elements = elements
@@ -340,6 +341,8 @@ class MultiWaySearchTree(Tree, MapBase):
         p.element().pop(index)
         p._node._children.pop(index)
         p._node._children[index] = new_node
+        # v and w do not belong to the tree anymore
+        v = w = None
 
     # -------------------------- PUBLIC METHODS --------------------------
 
@@ -373,20 +376,24 @@ class MultiWaySearchTree(Tree, MapBase):
         self._validate(p)
         return self.num_children(p) == 0
 
-    def left_sibling(self, p: Position) -> Position:
+    def left_sibling(self, p: Position, k=None) -> Optional[Position]:
         """Returns the Position of the node to the left of p"""
         node = self._validate(p)
         parent = self.parent(p)
-        _, i = binary_search(parent.keys(), p.element()[0]._key)
+        if k is None:
+            k = p.element()[0]._key
+        _, i = binary_search(parent.keys(), k)
         if i < 0:  # p is the leftmost child of parent
             return None  # left sibling of p does not exist
         return self._make_position(parent._node._children[i])
 
-    def right_sibling(self, p: Position) -> Position:
+    def right_sibling(self, p: Position, k=None) -> Optional[Position]:
         """Returns the Position of the node to the right of p"""
         node = self._validate(p)
         parent = self.parent(p)
-        _, i = binary_search(parent.keys(), p.element()[0]._key)
+        if k is None:
+            k = p.element()[0]._key
+        _, i = binary_search(parent.keys(), k)
         if i >= len(parent) - 1:  # p is the rightmost child of parent
             return None  # right sibling of p does not exist
         return self._make_position(parent._node._children[i + 2])
@@ -449,40 +456,41 @@ class MultiWaySearchTree(Tree, MapBase):
             if found:
                 while True:
                     v = p._node
-                    # If v contains more than a - 1 item or it is the root, delete the item
-                    if len(v) > self._a - 1 or p == self.root():
-                        # If v is a leaf, we can delete k directly
-                        if self.is_leaf(p):
+                    if self.is_leaf(p):
+                        # If v contains more than a - 1 item or it is the root, delete the item
+                        if len(v) > self._a - 1 or p == self.root():
                             # Delete the item at index i
                             v._elements.pop(i)
                             # Delete the corresponding child to the right of k
                             v._children.pop(i + 1)
                             break
-                        else:
-                            # Let ps be the position with smallest key in the subtree to the right of k
-                            ps = self._subtree_min(self._make_position(v._children[i + 1]))
-                            # Replace the item with key k with the first item of ps
-                            temp = v._elements[i]
-                            v._elements[i] = ps.element()[0]
-                            ps.element()[0] = temp
-                            # Delete the first item of ps from its subtree
-                            p = ps
-                            i = 0
-                    else:  # We have to handle underflow
-                        # If the node w on the left of v has more than a - 1 items, then perform a left-transfer
-                        w = self.left_sibling(p)
-                        if w is not None and len(w) > self._a - 1:
-                            self._transfer(i, p, w, left=True)
+                        else:  # We have to handle underflow
+                            # If the node w on the left of v has more than a - 1 items, then perform a left-transfer
+                            w = self.left_sibling(p, k)
+                            if w is not None and len(w) > self._a - 1:
+                                self._transfer(i, p, w, left=True)
+                                break
+                            # If the node w on the right of v has more than a - 1 items, then perform a right-transfer
+                            w = self.right_sibling(p)
+                            if w is not None and len(w) > self._a - 1:
+                                self._transfer(i, p, w, left=False)
+                                break
+                            # Otherwise perform a fusion
+                            # Let w be the node on the left (or on the right) of v
+                            w = self.left_sibling(p, k) or self.right_sibling(p)
+                            self._fusion(i, p, w)
                             break
-                        # If the node w on the right of v has more than a - 1 items, then perform a right-transfer
-                        w = self.right_sibling(p)
-                        if w is not None and len(w) > self._a - 1:
-                            self._transfer(i, p, w, left=False)
-                            break
-                        # Otherwise perform a fusion
-                        # Let w be the node on the left (or on the right) of v
-                        w = self.left_sibling(p) or self.right_sibling(p)
-                        self._fusion(i, p, w)
+                    else:
+                        # Let ps be the position with smallest key in the subtree to the right of k
+                        ps = self._subtree_min(self._make_position(v._children[i + 1]))
+                        k = ps._node._elements[0]._key
+                        # Replace the item with key k with the first item of ps
+                        temp = v._elements[i]
+                        v._elements[i] = ps.element()[0]
+                        ps.element()[0] = temp
+                        # Delete the first item of ps from its subtree
+                        p = ps
+                        i = 0
                 self._size -= 1
                 return
         raise KeyError('Key Error: ' + repr(k))
