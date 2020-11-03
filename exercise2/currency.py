@@ -21,7 +21,7 @@ class Currency:
 
     @staticmethod
     def _raise_ex_if_value_not_int_or_float(v):
-        if v <= 0 or (type(v) is not float and type(v) is not int):
+        if (type(v) is not float and type(v) is not int):
             raise ValueError("Value must be a float or integer and greater than 0, " + str(type(v)) + " was provided")
 
     def _raise_ex_if_den_empty(self):
