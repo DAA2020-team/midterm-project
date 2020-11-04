@@ -88,6 +88,30 @@ def main():
     del tree[55]
     print(tree)
 
+    for i in range(100):
+        print(f"*** Deleting {i} ***")
+        try:
+            del tree[i]
+        except KeyError:
+            pass
+        print(tree)
+
+    for i in range(10000):
+        tree[i] = int(str(i) * 2)
+
+    print(tree)
+
+    for i in range(10000):
+        del tree[i]
+
+    from iso4217 import Currency as cur
+
+    for code in [currency.code for currency in cur]:
+        tree[code] = code + " value"
+
+    print(len(tree))
+
+    print(tree)
 
     print("OK!")
 
