@@ -24,7 +24,7 @@ class Currency:
 
     @staticmethod
     def _raise_ex_if_value_not_int_or_float(v):
-        if (type(v) is not float and type(v) is not int):
+        if type(v) is not float and type(v) is not int:
             raise ValueError("Value must be a float or integer and greater than 0, " + str(type(v)) + " was provided")
 
     def _raise_ex_if_den_empty(self):
@@ -252,7 +252,7 @@ class Currency:
         # not require recursive deep copies
         for i, e in enumerate(self._changes._table):
             if isinstance(e, DoubleHashingHashMap._Item):
-                c._changes._table[i] = DoubleHashingHashMap._Item(e._key, e._value)
+                c._changes._table[i] = DoubleHashingHashMap._Item((e._key + '.')[:-1], e._value)
             else:
                 c._changes._table[i] = e
 
