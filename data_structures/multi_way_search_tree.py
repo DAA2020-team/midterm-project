@@ -1,5 +1,5 @@
 from math import ceil
-from typing import Tuple, List, Optional, Iterator
+from typing import Tuple, List, Optional, Iterator, Set
 
 from .map_base import MapBase
 from .tree import Tree
@@ -51,7 +51,7 @@ class MultiWaySearchTree(Tree, MapBase):
                 def value(self, v):
                     self._value = v
 
-                def __repr__(self):
+                def __repr__(self) -> str:
                     """Returns the string representation of an Item: (key-value)"""
                     return repr({self.key: self.value})
 
@@ -61,10 +61,10 @@ class MultiWaySearchTree(Tree, MapBase):
 
             def __init__(self, a: int, b: int, elements: List[Item], parent=None, children=None):
                 if elements is None or not a - 1 <= len(elements) <= b - 1:
-                    raise ValueError(f"size of elements must be in [{a - 1}, {b - 1}]."
-                                     f" Found {len(elements) if elements is not None else None}")
+                    raise ValueError(f"Size of elements must be in [{a - 1}, {b - 1}]. "
+                                     f"Found {len(elements) if elements is not None else None}")
                 if parent is not None and not isinstance(parent, type(self)):
-                    raise TypeError(f"parent is not type {type(self)}")
+                    raise TypeError(f"parent is not of type {type(self)}")
                 self._a = a
                 self._b = b
                 self._elements = elements
@@ -75,11 +75,11 @@ class MultiWaySearchTree(Tree, MapBase):
                         child.parent = self
 
             @property
-            def a(self) -> int:
+            def a(self):
                 return self._a
 
             @property
-            def b(self) -> int:
+            def b(self):
                 return self._b
 
             @property
@@ -102,11 +102,12 @@ class MultiWaySearchTree(Tree, MapBase):
             def parent(self, value):
                 self._parent = value
 
-            def __repr__(self):
-                """Returns the string representation of the Node"""
+            def __repr__(self) -> str:
+                """Returns the string representation of the Node."""
                 return repr(self.elements)
 
-            def __len__(self):
+            def __len__(self) -> int:
+                """Returns the number of items in this node."""
                 return len(self.elements)
 
         # -------------------------- Position CLASS CONSTRUCTOR --------------------------
@@ -130,39 +131,43 @@ class MultiWaySearchTree(Tree, MapBase):
         def elements(self):
             return self.node.elements
 
-        def element(self):
+        def element(self) -> List[Node.Item]:
             """Return the element stored at this Position."""
             return self.elements
 
-        def keys(self):
+        def keys(self) -> List[type(Node.Item.key)]:
             """Return key of map's key-value pair."""
-            return [item.key for item in self.element()]
+            return [item.key for item in self.elements]
 
-        def values(self):
+        def values(self) -> List[type(Node.Item.value)]:
             """Return value of map's key-value pair."""
-            return [item.value for item in self.element()]
+            return [item.value for item in self.elements]
 
-        def __eq__(self, other):
+        def __eq__(self, other) -> bool:
             """Return True if other is a Position representing the same location."""
             return type(other) is type(self) and other.node is self.node
 
-        def __repr__(self):
+        def __repr__(self) -> str:
             """Returns the string representation of the Position"""
             return repr(self._node)
 
-        def is_empty(self):
+        def is_empty(self) -> bool:
+            """Returns True if this position contains no elements, False otherwise."""
             return len(self) == 0
 
-        def is_overflow(self):
+        def is_overflow(self) -> bool:
+            """Returns True is this position is in overflow, False otherwise."""
             return len(self) > self._node.b - 1
 
-        def is_underflow(self):
+        def is_underflow(self) -> bool:
+            """Returns True if this position is in underflow, False otherwise."""
             return len(self) < self._node.a - 1
 
-        def __len__(self):
+        def __len__(self) -> int:
+            """Returns the number of items in this position."""
             return len(self.elements)
 
-    # ------------------------------- utility methods -------------------------------
+    # ------------------------------- UTILITY METHODS -------------------------------
 
     def _validate(self, p: Position) -> Position.Node:
         """Return associated node, if position is valid."""
@@ -178,7 +183,7 @@ class MultiWaySearchTree(Tree, MapBase):
         """Return Position instance for given node (or None if no node)."""
         return self.Position(self, node) if node is not None else None
 
-    # ------------------------------- CONSTRUCTOR -------------------------------
+    # ------------------------------- CLASS CONSTRUCTOR -------------------------------
 
     __slots__ = '_a', '_b', '_root', '_size'
 
@@ -197,7 +202,19 @@ class MultiWaySearchTree(Tree, MapBase):
 
     # -------------------------- PRIVATE METHODS --------------------------
 
-    def _add_root(self, e: Position.Node.Item):
+    def _subtree_iter(self, p: Position) -> Iterator[Position.Node.Item]:
+        """Generate an iteration of all elements in the subtree rooted at p."""
+        if self.is_leaf(p):
+            for e in p.elements:
+                yield e
+        else:
+            for i, child in enumerate(self.children(p)):
+                for other in self._subtree_iter(child):
+                    yield other
+                if i < len(p):
+                    yield p.elements[i]
+
+    def _add_root(self, e: Position.Node.Item) -> None:
         """
         Places element e at the root of an empty tree and return new Position.
         Raise ValueError if tree is non-empty.
@@ -316,7 +333,7 @@ class MultiWaySearchTree(Tree, MapBase):
                 node.children[j].parent = smaller_node
         # With kb and vb we create a new node
         bigger_node = self.Position.Node(self._a, self._b, [self.Position.Node.Item(k, v) for k, v in zip(kb, vb)])
-        # smaller_node must keep all the children of p from index median + 1
+        # bigger_node must keep all the children of p from index median + 1
         for j in range(median):  # j parses all children of bigger_node: they are median
             bigger_node.children[j] = node.children[median + 1 + j]
             if node.children[median + 1 + j] is not None:
@@ -340,7 +357,7 @@ class MultiWaySearchTree(Tree, MapBase):
         # So, we increment index
         index = index + 1
         # Let new_item be the Item in p with key k'
-        new_item = p.element()[index]
+        new_item = p.elements[index]
         # Let k'' be the largest key saved in w
         # Let rightmost_item be the item in w with key k''
         rightmost_item = w_node.elements[-1]
@@ -357,7 +374,7 @@ class MultiWaySearchTree(Tree, MapBase):
         # Also delete the rightmost child
         w_node.children.pop()
         # Replace k' with k'' in p
-        p.element()[index] = rightmost_item
+        p.elements[index] = rightmost_item
 
     def _right_transfer(self, v: Position, w: Position) -> None:
         """
@@ -374,7 +391,7 @@ class MultiWaySearchTree(Tree, MapBase):
         # Since w is the right sibling of v, the binary search will return the index of k'
         _, index = binary_search(p.keys(), w_node.elements[0].key)
         # Let new_item be the Item in p with key k'
-        new_item = p.element()[index]
+        new_item = p.elements[index]
         # Let k'' be the smallest key saved in w
         # Let leftmost_item be the item in w with key k''
         leftmost_item = w_node.elements[0]
@@ -391,7 +408,7 @@ class MultiWaySearchTree(Tree, MapBase):
         # Also delete the leftmost child
         w_node.children.pop(0)
         # Replace k' with k'' in p
-        p.element()[index] = leftmost_item
+        p.elements[index] = leftmost_item
 
     def _transfer(self, v: Position, w: Position, left=True) -> None:
         """
@@ -435,7 +452,7 @@ class MultiWaySearchTree(Tree, MapBase):
                                       children=w_node.children + v_node.children if left else
                                       v_node.children + w_node.children)
         # Remove new_item from p
-        p.element().pop(index)
+        p.elements.pop(index)
         # Also remove the child to the right of k'
         p.node.children.pop(index)
         # Substitute that child with new_node
@@ -446,9 +463,9 @@ class MultiWaySearchTree(Tree, MapBase):
 
     # -------------------------- PUBLIC METHODS --------------------------
 
-    def __len__(self):
-        """Return the total number of elements in the tree."""
-        return self._size
+    # -------------------------- ADT TREE INTERFACE METHODS --------------------------
+
+    # -------------------------- ACCESS METHODS --------------------------
 
     def root(self) -> Optional[Position]:
         """Return the root Position of the tree (or None if tree is empty)."""
@@ -459,11 +476,6 @@ class MultiWaySearchTree(Tree, MapBase):
         node = self._validate(p)
         return self._make_position(node.parent)
 
-    def num_children(self, p: Position) -> int:
-        """Return the number of children that Position p has."""
-        self._validate(p)
-        return len(list(self.children(p)))
-
     def children(self, p: Position) -> Iterator[Position]:
         """Generate an iteration of Positions representing p's children."""
         node = self._validate(p)
@@ -471,10 +483,26 @@ class MultiWaySearchTree(Tree, MapBase):
             if child is not None:
                 yield self._make_position(child)
 
-    def is_leaf(self, p: Position) -> bool:
-        """Returns True if p is a leaf, False otherwise"""
+    def num_children(self, p: Position) -> int:
+        """Return the number of children that Position p has."""
         self._validate(p)
-        return self.num_children(p) == 0
+        return len(list(self.children(p)))
+
+    def before(self, p: Position) -> Optional[Position]:
+        """Returns the position of the predecessor of w."""
+        raise NotImplementedError
+
+    def after(self, p: Position) -> Optional[Position]:
+        """Returns the position of the successor of w."""
+        raise NotImplementedError
+
+    def first(self) -> Optional[Position]:
+        """Returns the first postion in the tree (or None if the tree is empty)."""
+        raise NotImplementedError
+
+    def last(self) -> Optional[Position]:
+        """Returns the last position in the tree (or None if the tree is empty)."""
+        raise NotImplementedError
 
     def left_sibling(self, p: Position, k: type(Position.Node.Item.key) = None) -> Optional[Position]:
         """Returns the Position of the node to the left of p"""
@@ -501,6 +529,36 @@ class MultiWaySearchTree(Tree, MapBase):
         if i >= len(parent) - 1:  # p is the rightmost child of parent
             return None  # right sibling of p does not exist
         return self._make_position(parent.node.children[i + 2])
+
+    # -------------------------- GENERIC METHODS --------------------------
+
+    def __len__(self) -> int:
+        """Return the total number of elements in the tree."""
+        return self._size
+
+    def __iter__(self) -> Iterator[Position.Node.Item]:
+        """Generate an iteration of the tree's elements."""
+        if not self.is_empty():
+            return self._subtree_iter(self.root())
+
+    def __repr__(self) -> str:
+        """Returns the string representation of the tree, level by level."""
+        return self._subtree_repr(self.root(), 0, 0)
+
+    # -------------------------- ADT MAP INTERFACE METHODS --------------------------
+
+    def __getitem__(self, k: type(Position.Node.Item.key)) -> type(Position.Node.Item.value):
+        """Return value associated with key k (raise KeyError if not found)."""
+        # If the tree is empty, k is not in the tree
+        if self.is_empty():
+            raise KeyError('Key Error: ' + repr(k))
+        else:
+            # Search for the node p that should contain k
+            found, p, i = self._subtree_search(self.root(), k)
+            # If no node is found, k is not in the tree
+            if not found:
+                raise KeyError('Key Error: ' + repr(k))
+            return p.elements[i].value
 
     def __setitem__(self, k: type(Position.Node.Item.key), v: type(Position.Node.Item.value)) -> None:
         """
@@ -641,19 +699,88 @@ class MultiWaySearchTree(Tree, MapBase):
                 return
         raise KeyError('Key Error: ' + repr(k))
 
-    def __getitem__(self, k: type(Position.Node.Item.key)) -> type(Position.Node.Item.value):
-        """Return value associated with key k (raise KeyError if not found)."""
-        # If the tree is empty, k is not in the tree
-        if self.is_empty():
-            raise KeyError('Key Error: ' + repr(k))
-        else:
-            # Search for the node p that should contain k
-            found, p, i = self._subtree_search(self.root(), k)
-            # If no node is found, k is not in the tree
-            if not found:
-                raise KeyError('Key Error: ' + repr(k))
-            return p.elements[i].value
+    def clear(self) -> None:
+        """Removes all the pairs key-value present in the tree."""
+        self._root = None
+        self._size = 0
 
-    def __repr__(self):
-        """Returns the string representation of the tree, level by level"""
-        return self._subtree_repr(self.root(), 0, 0)
+    def get(self, k: type(Position.Node.Item.key),
+            d: type(Position.Node.Item.value) = None) -> type(Position.Node.Item.value):
+        """Returns the value associated to key k if present, otherwise it returns d."""
+        try:
+            return self[k]
+        except KeyError:
+            return d
+
+    def setdefault(self, k: type(Position.Node.Item.key),
+                   d: type(Position.Node.Item.value) = None) -> type(Position.Node.Item.value):
+        """Returns the value associated to key if present, otherwise it makes self[k]=d and returns d."""
+        try:
+            return self[k]
+        except KeyError:
+            self[k] = d
+            return d
+
+    def pop(self, k: type(Position.Node.Item.key),
+            d: type(Position.Node.Item.value) = None) -> type(Position.Node.Item.value):
+        """Returns self[k] and deletes the pair if present, otherwise it returns d."""
+        raise NotImplementedError
+
+    def popitem(self) -> Position.Node.Item:
+        """Returns an arbitrary pair (k, v) and deletes it from the map. It throws an exception if the tree is empty."""
+        raise NotImplementedError
+
+    def keys(self) -> Set[type(Position.Node.Item.key)]:
+        """Returns a set-like view of all keys in the tree."""
+        raise NotImplementedError
+
+    def values(self) -> Set[type(Position.Node.Item.value)]:
+        """Returns a set-like view of all values in the tree."""
+        raise NotImplementedError
+
+    def items(self) -> Set[Position.Node.Item]:
+        """Returns a set-like view of all the (k, v) tuples in the tree."""
+        raise NotImplementedError
+
+    def __eq__(self, other) -> bool:
+        """Returns True if the tree contains same pairs as other."""
+        raise NotImplementedError
+
+    def __ne__(self, other) -> bool:
+        """Returns True if the tree does not contain same pairs as other."""
+        raise NotImplementedError
+
+    def update(self, other, **kwargs) -> None:
+        """For each pairs (k, v) in other sets self[k] = v."""
+        raise NotImplementedError
+
+    # -------------------------- ADT SORTED MAP INTERFACE METHODS --------------------------
+
+    def find_min(self) -> Optional[Position.Node.Item]:
+        """Returns the element with the smallest key."""
+        raise NotImplementedError
+
+    def find_max(self) -> Optional[Position.Node.Item]:
+        """Returns the element with the greatest key."""
+        raise NotImplementedError
+
+    def find_lt(self, k: type(Position.Node.Item.key)) -> Optional[Position.Node.Item]:
+        """Returns the element with the largest key that is < k."""
+        raise NotImplementedError
+
+    def find_le(self, k: type(Position.Node.Item.key)) -> Optional[Position.Node.Item]:
+        """Returns the element with the largest key that is <= k."""
+        raise NotImplementedError
+
+    def find_gt(self, k: type(Position.Node.Item.key)) -> Optional[Position.Node.Item]:
+        """Returns the element with the smallest key that is > k."""
+        raise NotImplementedError
+
+    def find_ge(self, k: type(Position.Node.Item.key)) -> Optional[Position.Node.Item]:
+        """Returns the element with the smallest key that is >= k."""
+        raise NotImplementedError
+
+    def find_range(self, start: type(Position.Node.Item.key),
+                   stop: type(Position.Node.Item.key)) -> Iterator[Position.Node.Item]:
+        """Returns all the elements with keys between start and stop."""
+        raise NotImplementedError

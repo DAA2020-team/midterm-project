@@ -1,5 +1,7 @@
 from random import shuffle, seed
 
+from iso4217 import Currency as cur
+
 from data_structures.multi_way_search_tree import MultiWaySearchTree
 
 
@@ -96,21 +98,20 @@ def main():
             pass
         print(tree)
 
-    for i in range(10000):
+    """for i in range(10000):
         tree[i] = int(str(i) * 2)
 
     print(tree)
 
     for i in range(10000):
-        del tree[i]
+        del tree[i]"""
 
-    from iso4217 import Currency as cur
-
-    for code in [currency.code for currency in cur]:
+    for code in [currency.code for currency in cur][:50]:
         tree[code] = code + " value"
-
     print(len(tree))
+    print(tree)
 
+    print(tree.setdefault("XXX"))
     print(tree)
 
     print("OK!")
