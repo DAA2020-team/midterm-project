@@ -1,6 +1,10 @@
 from data_structures.double_hashing_hash_map import DoubleHashingHashMap
 from utils import load_primes
 from iso4217 import Currency as cur
+from random import seed
+
+
+seed(2020)
 
 
 def main():
@@ -94,6 +98,23 @@ def main():
 
     print("""Test of load primes""")
     print(load_primes()[:100])
+
+    print("""Test of collisions""")
+    my_map = DoubleHashingHashMap()
+    for code in [currency.code for currency in cur]:
+        my_map[code] = code
+    print(my_map.get_collisions())
+    print(my_map)
+
+    print("""Stupid test""")
+    my_map = DoubleHashingHashMap()
+    codes = [currency.code for currency in cur]
+    for code in codes[:codes.index("ARS") + 1]:
+        my_map[code] = code
+    print(my_map.get_collisions())
+    del my_map["ARS"]
+    print(my_map.get_collisions())
+    print("Hello there")
 
 
 if __name__ == '__main__':
