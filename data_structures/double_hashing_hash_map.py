@@ -9,6 +9,7 @@ class DoubleHashingHashMap(HashMapBase):
     __slots__ = '_z', '_q', '_load_factor', '_collision_counter', '_count_collisions', '_is_resizing'
 
     _AVAIL = object()  # sentinal marks locations of previous deletions
+    _MIN_CAPACITY = 17
 
     # --------------- NESTED _Item CLASS ---------------
 
@@ -23,7 +24,7 @@ class DoubleHashingHashMap(HashMapBase):
 
     # --------------- CONSTRUCTOR ---------------
 
-    def __init__(self, cap=17, z=92821, p=109345121, q=13, load_factor_range=(0.2, 0.5)):
+    def __init__(self, cap=_MIN_CAPACITY, z=92821, p=109345121, q=13, load_factor_range=(0.2, 0.5)):
         """
         Constructor.
         :param cap: Initial capacity of the HashMap
@@ -104,19 +105,20 @@ class DoubleHashingHashMap(HashMapBase):
         j = self._h(k)
         self._bucket_delitem(j, k)  # may raise KeyError
         self._n -= 1
-        if self._n < self._load_factor[0] * self.capacity() and self.capacity() > 17:  # keep minimum load factor
+        # keep minimum load factor
+        if self._n < self._load_factor[0] * self.capacity() and self.capacity() > DoubleHashingHashMap._MIN_CAPACITY:
             new_minimum_capacity = self.capacity() * self._load_factor[0] / self._load_factor[-1]
             new_capacity = (self.capacity() + new_minimum_capacity) // 2
             primes = load_primes()
             _, index = binary_search(primes, new_capacity)
-            self._resize(max(primes[index], 17))
+            self._resize(max(primes[index], DoubleHashingHashMap._MIN_CAPACITY))
 
     def clear(self):
         """
         Removes all the pairs key-value present.
         :return: None
         """
-        self._table = self.capacity() * [None]
+        self._table = DoubleHashingHashMap._MIN_CAPACITY * [None]
         self._n = 0
         self._collision_counter = 0
 
