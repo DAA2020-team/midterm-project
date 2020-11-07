@@ -25,7 +25,7 @@ It can be installed using pip, running the following command:
 ### Exercise 1
 
 1. Change directory to the root folder.
-2. Run `python exercise1\main.py` to test the DoubleHashingHashMap.
+2. Run `python exercise1/main.py` to test the DoubleHashingHashMap.
     * This will perform 70 add operations and then 30 delete operations, showing the total number of collisions.
     
 The ADT implementation is in the `data_structures` folder, in the file [double_hashing_hash_map.py](data_structures/double_hashing_hash_map.py).
@@ -33,7 +33,7 @@ The ADT implementation is in the `data_structures` folder, in the file [double_h
 ### Exercise 2
 
 1. Change directory to the root folder.
-2. Run `python exercise2\main.py` to test the Currency Class.
+2. Run `python exercise2/main.py` to test the Currency Class.
     * This will test a few methods of the class
 
 The implementation of the class is in the file [currency.py](exercise2/currency.py)
@@ -41,7 +41,7 @@ The implementation of the class is in the file [currency.py](exercise2/currency.
 ### Exercise 3
 
 1. Change directory to the root folder.
-2. Run `python exercise3\main.py` to test the implementation of the MultiWaySearchTree.
+2. Run `python exercise3/main.py` to test the implementation of the MultiWaySearchTree.
     * This will add some currencies to the tree and will print them.
     
 The implementation of the ADT is in the `data_structures` folder, in the file [multi_way_search_tree.py](data_structures/multi_way_search_tree.py).
@@ -49,7 +49,7 @@ The implementation of the ADT is in the `data_structures` folder, in the file [m
 ### Exercise 4
 
 1. Change directory to the root folder folder.
-2. Run `python exercise4\main.py` to test the implementation of the `change()` function.
+2. Run `python exercise4/main.py` to test the implementation of the `change()` function.
     * There are some parameters to pass to the test function that can customize the test. In particular
         there is the `manual` parameter and if is set to `True`, the test will print more information and will proceed step
         by step, waiting for a enter key press for each one.
