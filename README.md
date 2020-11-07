@@ -28,7 +28,7 @@ It can be installed using pip, running the following command:
 2. Run `python exercise1/main.py` to test the DoubleHashingHashMap.
     * This will perform 70 add operations and then 30 delete operations, showing the total number of collisions.
     
-The ADT implementation is in the `data_structures` folder, in the file [double_hashing_hash_map.py](data_structures/double_hashing_hash_map.py).
+The ADT implementation is in the `data_structures` folder, in the file [double_hashing_hash_map.py](https://github.com/DAA2020-team/midterm-project/blob/master/data_structures/double_hashing_hash_map.py).
 
 ### Exercise 2
 
@@ -36,7 +36,7 @@ The ADT implementation is in the `data_structures` folder, in the file [double_h
 2. Run `python exercise2/main.py` to test the Currency Class.
     * This will test a few methods of the class
 
-The implementation of the class is in the file [currency.py](exercise2/currency.py)
+The implementation of the class is in the file [currency.py](https://github.com/DAA2020-team/midterm-project/blob/master/exercise2/currency.py)
 
 ### Exercise 3
 
@@ -44,7 +44,7 @@ The implementation of the class is in the file [currency.py](exercise2/currency.
 2. Run `python exercise3/main.py` to test the implementation of the MultiWaySearchTree.
     * This will add some currencies to the tree and will print them.
     
-The implementation of the ADT is in the `data_structures` folder, in the file [multi_way_search_tree.py](data_structures/multi_way_search_tree.py).
+The implementation of the ADT is in the `data_structures` folder, in the file [multi_way_search_tree.py](https://github.com/DAA2020-team/midterm-project/blob/master/data_structures/multi_way_search_tree.py).
 
 ### Exercise 4
 
@@ -53,8 +53,10 @@ The implementation of the ADT is in the `data_structures` folder, in the file [m
     * There are some parameters to pass to the test function that can customize the test. In particular
         there is the `manual` parameter and if is set to `True`, the test will print more information and will proceed step
         by step, waiting for a enter key press for each one.
+        
+The implementation of the `change()` function is in the [exercise4/main.py](https://github.com/DAA2020-team/midterm-project/blob/master/exercise4/main.py)
    
 ## Other resources
-In the `resources` folder there is the [primes.bin](resources/primes.bin) file, which contains prime numbers used by the DoubleHashingHashMap.
+In the `resources` folder there is the [primes.bin](https://github.com/DAA2020-team/midterm-project/blob/master/resources/primes.bin) file, which contains prime numbers used by the DoubleHashingHashMap.
 
-In the [utils.py](utils.py) module there are some support functions used by different modules.
+In the [utils.py](https://github.com/DAA2020-team/midterm-project/blob/master/utils.py) module there are some support functions used by different modules.
