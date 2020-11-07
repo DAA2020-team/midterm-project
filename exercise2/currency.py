@@ -14,8 +14,8 @@ class Currency:
         self._denominations = AVLTreeMap()
         self._changes = DoubleHashingHashMap()
 
-    def __str__(self):
-        return str(self._code + ":\nDenominations: " + str(self._denominations) + "\nChanges: " + str(self._changes))
+    def __repr__(self):
+        return str(self._code + ":\n\tDenominations: " + str(self._denominations) + "\n\tChanges: " + str(self._changes))
 
     @staticmethod
     def _raise_ex_if_code_not_valid(c):

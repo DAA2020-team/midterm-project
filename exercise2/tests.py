@@ -100,7 +100,6 @@ cur_deepcopy.del_denomination(225)
 for i in cur.iter_denominations():
     print(i)
 
-for i in cur_deepcopy._changes._table:
-    print(cur)
-
+print(cur)
+print(cur_deepcopy)
 
