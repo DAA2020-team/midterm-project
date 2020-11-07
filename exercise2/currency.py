@@ -2,6 +2,8 @@ from data_structures.avl_tree import AVLTreeMap
 from data_structures.double_hashing_hash_map import DoubleHashingHashMap
 import utils as utils
 
+from iso4217 import Currency as cur
+
 
 class Currency:
     __slots__ = '_code', '_denominations', '_changes'
@@ -15,7 +17,7 @@ class Currency:
         self._changes = DoubleHashingHashMap()
 
     def __repr__(self):
-        return repr(self._code) + ":\n\tDenominations: " + repr(self._denominations) + "\n\tChanges: " + repr(self._changes)
+        return repr(self._denominations)
 
     @staticmethod
     def _raise_ex_if_code_not_valid(c):
