@@ -18,30 +18,30 @@ The lower python version which these files have been tested is 3.6.9. Compatibil
 ### Exercise 1
 1. Change directory to `exercise1` folder.
 2. Run [main.py](exercise1/main.py) to test the DoubleHashingHashMap.
-    3. This will perform 70 add operation and then 30 delete operation, showing the total number of collisions.
+    1. This will perform 70 add operation and then 30 delete operation, showing the total number of collisions.
     
 The ADT implementation is in the `data_structures` folder, in the file [double_hashing_hash_map.py](data_structures/double_hashing_hash_map.py).
 
 ### Exercise 2
 1. Change directory to `exercise2` folder.
 2. Run [main.py](exercise2/main.py) to test the Currency Class.
-    2. This will test a few methods of the class
+    1. This will test a few methods of the class
 
 The implementation of the class is in the file [currency.py](exercise2/currency.py)
 
 ### Exercise 3
 1. Change directory to `exercise3` folder.
 2. Run [main.py](exercise3/main.py) to test the implementation of the MultiWaySearchTree.
-    3. This will add some currencies to the tree and will print them.
+    1. This will add some currencies to the tree and will print them.
     
 The implementation of the ADT is in the `data_structures` folder, in the file [multi_way_search_tree.py](data_structures/multi_way_search_tree.py).
 
 ### Exercise 4
 1. Change directory to `exercise4` folder.
 2. Run [main.py](exercise4/main.py) to test the implementation of the `change()`.
-    3. There are some parameters to pass to the test function that can customize the test. In particular
-     there is the `manual` parameter and if is set to `True`, the test will print more information and will proceed step
-     by step, waiting for a enter key press for each one.
+    1. There are some parameters to pass to the test function that can customize the test. In particular
+        there is the `manual` parameter and if is set to `True`, the test will print more information and will proceed step
+        by step, waiting for a enter key press for each one.
    
 ## Other resources
 In the `resources` folder there is the [primes.bin](resources/primes.bin) file, which contains prime numbers used by the DoubleHashingHashMap.
