@@ -20,7 +20,7 @@ The lower python version which these files have been tested is 3.6.9. Compatibil
 2. Run [main.py](exercise1/main.py) to test the DoubleHashingHashMap.
     3. This will perform 70 add operation and then 30 delete operation, showing the total number of collisions.
     
-The ADT implementation is in the `data_structures` folder, in the file `double_hashing_hash_map.py`.
+The ADT implementation is in the `data_structures` folder, in the file [double_hashing_hash_map.py](data_structures/double_hashing_hash_map.py).
 
 ### Exercise 2
 1. Change directory to `exercise2` folder.
@@ -34,7 +34,7 @@ The implementation of the class is in the file [currency.py](exercise2/currency.
 2. Run [main.py](exercise3/main.py) to test the implementation of the MultiWaySearchTree.
     3. This will add some currencies to the tree and will print them.
     
-The implementation of the ADT is in the `data_structures` folder, in the file [multi_way_search_tree.py](exercise1/multi_way_search_tree.py).
+The implementation of the ADT is in the `data_structures` folder, in the file [multi_way_search_tree.py](data_structures/multi_way_search_tree.py).
 
 ### Exercise 4
 1. Change directory to `exercise4` folder.
