@@ -50,10 +50,6 @@ def main():
 
     print("""Test of popitem""")
     print(my_map.popitem())
-    """
-        my_map2 = DoubleHashingHashMap()
-        my_map2.popitem()
-        """
 
     print("""Test of keys""")
     print(my_map.keys())
@@ -106,11 +102,13 @@ def main():
     print("""Stupid test""")
     my_map = DoubleHashingHashMap()
     codes = [currency.code for currency in cur]
+    print(codes)
     for code in codes:
         my_map[code] = code
     print(my_map.get_collisions())
     for code in codes:
         del my_map[code]
+    print(my_map.get_collisions())
     print("Hello there")
 
 

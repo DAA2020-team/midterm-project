@@ -6,7 +6,7 @@ from utils import bitify, load_primes, binary_search
 
 class DoubleHashingHashMap(HashMapBase):
 
-    __slots__ = '_z', '_q', '_load_factor', '_collision_counter'
+    __slots__ = '_z', '_q', '_load_factor', '_collision_counter', '_count_collisions', '_is_resizing'
 
     _AVAIL = object()  # sentinal marks locations of previous deletions
 
@@ -23,7 +23,7 @@ class DoubleHashingHashMap(HashMapBase):
 
     # --------------- CONSTRUCTOR ---------------
 
-    def __init__(self, cap=17, z=92821, p=109345121, q=13, load_factor=0.5):
+    def __init__(self, cap=17, z=92821, p=109345121, q=13, load_factor_range=(0.2, 0.5)):
         """
         Constructor.
         :param cap: Initial capacity of the HashMap
@@ -34,8 +34,10 @@ class DoubleHashingHashMap(HashMapBase):
         super().__init__(cap=cap, p=p)
         self._z = z
         self._q = q
-        self._load_factor = load_factor
+        self._load_factor = load_factor_range
         self._collision_counter = 0
+        self._count_collisions = False
+        self._is_resizing = False
 
     # --------------- UTILITY METHODS ---------------
 
@@ -71,6 +73,7 @@ class DoubleHashingHashMap(HashMapBase):
         :param k: key to search
         :return: value associated to k
         """
+        self._count_collisions = False
         j = self._h(k)
         return self._bucket_getitem(j, k)  # may raise KeyError
 
@@ -81,11 +84,14 @@ class DoubleHashingHashMap(HashMapBase):
         :param v: value associated to k
         :return: None
         """
+        self._count_collisions = not self._is_resizing
         j = self._h(k)
         self._bucket_setitem(j, k, v)  # subroutine maintains self._n
-        if self._n > self._load_factor * self.capacity():  # keep load factor
+        if self._n > self._load_factor[-1] * self.capacity():  # keep maximum load factor
+            new_maximum_capacity = self.capacity() * self._load_factor[-1] / self._load_factor[0]
+            new_capacity = (self.capacity() + new_maximum_capacity) // 2
             primes = load_primes()
-            _, index = binary_search(primes, 2 * self.capacity() - 1)
+            _, index = binary_search(primes, new_capacity)
             self._resize(primes[index])
 
     def __delitem__(self, k):
@@ -94,9 +100,16 @@ class DoubleHashingHashMap(HashMapBase):
         :param k: key to delete
         :return: None
         """
+        self._count_collisions = False
         j = self._h(k)
         self._bucket_delitem(j, k)  # may raise KeyError
         self._n -= 1
+        if self._n < self._load_factor[0] * self.capacity() and self.capacity() > 17:  # keep minimum load factor
+            new_minimum_capacity = self.capacity() * self._load_factor[0] / self._load_factor[-1]
+            new_capacity = (self.capacity() + new_minimum_capacity) // 2
+            primes = load_primes()
+            _, index = binary_search(primes, new_capacity)
+            self._resize(max(primes[index], 17))
 
     def clear(self):
         """
@@ -255,24 +268,27 @@ class DoubleHashingHashMap(HashMapBase):
         """Return True if index j is available in table."""
         return self._table[j] is None or self._table[j] is DoubleHashingHashMap._AVAIL
 
-    def _find_slot(self, j, k, count_collisions=False):
+    def _find_slot(self, j, k):
         """Search for key k in bucket at index j.
 
         Return (success, index) tuple, described as follows:
         If match was found, success is True and index denotes its location.
         If no match found, success is False and index denotes first available slot.
         """
+        previous_collisions = self._collision_counter
         firstAvail = None
         while True:
             if self._is_available(j):
+                self._count_collisions = False
                 if firstAvail is None:
                     firstAvail = j  # mark this as first avail
                 if self._table[j] is None:
                     return False, firstAvail  # search has failed
             elif k == self._table[j]._key:
+                self._collision_counter = previous_collisions
                 return True, j  # found a match
             j = (j + self._d(k)) % self.capacity()  # keep looking (cyclically)
-            if count_collisions:
+            if self._count_collisions:
                 self._collision_counter += 1  # collision found. increment counter
 
     def _bucket_getitem(self, j, k):
@@ -282,7 +298,7 @@ class DoubleHashingHashMap(HashMapBase):
         :param k: key to search
         :return: value associated to k
         """
-        found, s = self._find_slot(j, k, count_collisions=False)
+        found, s = self._find_slot(j, k)
         if not found:
             raise KeyError('Key Error: ' + repr(k))  # no match found
         return self._table[s]._value
@@ -295,7 +311,7 @@ class DoubleHashingHashMap(HashMapBase):
         :param v: value associated to k
         :return: None
         """
-        found, s = self._find_slot(j, k, count_collisions=True)
+        found, s = self._find_slot(j, k)
         if not found:
             self._table[s] = self._Item(k, v)  # insert new item
             self._n += 1  # size has increased
@@ -309,7 +325,12 @@ class DoubleHashingHashMap(HashMapBase):
         :param k: key to delete
         :return: None
         """
-        found, s = self._find_slot(j, k, count_collisions=False)
+        found, s = self._find_slot(j, k)
         if not found:
             raise KeyError('Key Error: ' + repr(k))  # no match found
         self._table[s] = DoubleHashingHashMap._AVAIL  # mark as vacated
+
+    def _resize(self, c):
+        self._is_resizing = True
+        super()._resize(c)
+        self._is_resizing = False
