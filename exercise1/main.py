@@ -17,6 +17,7 @@ def main():
     for code in codes[:30]:
         del my_map[code]
 
+    print(my_map)
     print(my_map.get_collisions())
 
 

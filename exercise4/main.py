@@ -62,6 +62,7 @@ def test(n=3000, step=100, manual=False):
             print(str(v) + ": " + str(l) + " --- Sum: " + str(round(sum(l), 2)))
             input("")
         assert(round(sum(l), 2) == round(v, 2))
+    print(f"{n} tests completed")
 
 
 def get_currency(c="EUR", d=None):
@@ -93,4 +94,4 @@ def main():
 
 if __name__ == '__main__':
     main()
-    test(manual=True)
+    test(n=10, manual=True)
