@@ -1,3 +1,6 @@
+import sys
+sys.path.append('../midterm-project')
+
 from exercise2.currency import Currency
 
 

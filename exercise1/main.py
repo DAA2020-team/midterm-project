@@ -1,3 +1,6 @@
+import sys
+sys.path.append('../midterm-project')
+
 from random import shuffle
 
 from iso4217 import Currency as cur

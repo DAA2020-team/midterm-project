@@ -1,3 +1,6 @@
+import sys
+sys.path.append('../midterm-project')
+
 """
 Implement a function change(value, currency), where value is a float number with at most
 two decimal points and currency is an object of the class Currency.
