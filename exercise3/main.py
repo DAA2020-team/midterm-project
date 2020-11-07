@@ -106,13 +106,15 @@ def main():
     for i in range(10000):
         del tree[i]"""
 
-    for code in [currency.code for currency in cur][:50]:
+    for code in [currency.code for currency in cur][:80]:
         tree[code] = code + " value"
     print(len(tree))
     print(tree)
 
-    print(tree.setdefault("XXX"))
-    print(tree)
+    for i, item in enumerate(tree.find_range("GNF", "NZD")):
+        print(i + 1, item)
+
+    print(tree.find_gt("GNF"))
 
     print("OK!")
 

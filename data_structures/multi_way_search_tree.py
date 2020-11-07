@@ -214,7 +214,7 @@ class MultiWaySearchTree(Tree, MapBase):
                 if i < len(p):
                     yield p.elements[i]
 
-    def _add_root(self, e: Position.Node.Item) -> None:
+    def _add_root(self, e: Position.Node.Item) -> Optional[Position]:
         """
         Places element e at the root of an empty tree and return new Position.
         Raise ValueError if tree is non-empty.
@@ -275,8 +275,90 @@ class MultiWaySearchTree(Tree, MapBase):
         node = self._validate(p)
         # The greatest key must be in the subtree rooted at the last child of p, if this child exists
         if node.children[-1] is not None:
-            return self._subtree_min(self._make_position(node.children[-1]))
+            return self._subtree_max(self._make_position(node.children[-1]))
         return p, p.elements[-1].key
+
+    def _subtree_find_lt(self, p: Position, k: type(Position.Node.Item.key), i: int) ->\
+            Tuple[Optional[Position], Optional[Position.Node.Item]]:
+        """
+        Returns the element with the largest key that is < k in the subtree rooted at p.
+        k is supposed to be the i-th key in p.
+        """
+        # If p is an in internal node
+        if not self.is_leaf(p):
+            # Then the key less than k is the maximimum in key in the subtree rooted at the child to the left of k
+            p, _ = self._subtree_max(self._make_position(p.node.children[i]))
+            return p, p.elements[-1]
+        else:  # If p is a leaf
+            # If k is not the first key in p
+            if i > 0:
+                # Return the key to the left of k
+                return p, p.elements[i - 1]
+            # If k is the first key in p, we go up
+            walk = p
+            # We go up until walk is the first child of its parent (above)
+            above = self.parent(walk)
+            # We stop when we reach the root
+            while above is not None and walk == list(self.children(above))[0]:
+                # If none of the two conditions is met yet, keep going up
+                walk = above
+                above = self.parent(walk)
+            # If we reached the root
+            if above is None:
+                # We have to return a key of root
+                _, i = binary_search(walk.keys(), k)
+                # If k is not smaller than all the keys in the root
+                if i >= 0:
+                    # Then return the greatest key smaller than k (easy because of the implementation of binary_search)
+                    return walk, walk.elements[i]
+                else:
+                    # If k is smaller than all the keys in the root, then no "less then" exists
+                    return None, None
+            # If we didn't reach the root
+            _, i = binary_search(above.keys(), k)
+            # Just return the greatest key in above smaller than key
+            return above, above.elements[i]
+
+    def _subtree_find_gt(self, p: Position, k: type(Position.Node.Item.key), i: int) ->\
+            Tuple[Optional[Position], Optional[Position.Node.Item]]:
+        """
+        Returns the position and the element with the smallest key that is > k in the subtree rooted at p.
+        k is supposed to be the i-th key in p.
+        """
+        # If p is an in internal node
+        if not self.is_leaf(p):
+            # Then the key greater than k is the minimum in key in the subtree rooted at the child to the right of k
+            p, _ = self._subtree_min(self._make_position(p.node.children[i]))
+            return p, p.elements[0]
+        else:  # If p is a leaf
+            # If k is not the last key in p
+            if i < len(p):
+                # Return the key to the right of k
+                return p, p.elements[i]
+            # If k is the last key in p, we go up
+            walk = p
+            # We go up until walk is the last child of its parent (above)
+            above = self.parent(walk)
+            # We stop when we reach the root
+            while above is not None and walk == list(self.children(above))[-1]:
+                # If none of the two conditions is met yet, keep going up
+                walk = above
+                above = self.parent(walk)
+            # If we reached the root
+            if above is None:
+                # We have to return a key of root
+                _, i = binary_search(walk.keys(), k)
+                # If k is not greater than all the keys in the root
+                if i < len(walk) - 1:
+                    # Then return the smallest key greater than k (increment the return value of binary_search)
+                    return walk, walk.elements[i + 1]
+                else:
+                    # If k is greater than all the keys in the root, then no "greater then" exists
+                    return None, None
+            # If we didn't reach the root
+            _, i = binary_search(above.keys(), k)
+            # Just return the smallest key in above greater than key
+            return above, above.elements[i + 1]
 
     def _subtree_repr(self, p: Position, level: int, children_counter: int) -> str:
         """Returns the string representation of the subtree rooted at p"""
@@ -488,21 +570,13 @@ class MultiWaySearchTree(Tree, MapBase):
         self._validate(p)
         return len(list(self.children(p)))
 
-    def before(self, p: Position) -> Optional[Position]:
-        """Returns the position of the predecessor of w."""
-        raise NotImplementedError
-
-    def after(self, p: Position) -> Optional[Position]:
-        """Returns the position of the successor of w."""
-        raise NotImplementedError
-
     def first(self) -> Optional[Position]:
         """Returns the first postion in the tree (or None if the tree is empty)."""
-        raise NotImplementedError
+        return self._subtree_min(self.root())[0] if not self.is_empty() else None
 
     def last(self) -> Optional[Position]:
         """Returns the last position in the tree (or None if the tree is empty)."""
-        raise NotImplementedError
+        return self._subtree_max(self.root())[0] if not self.is_empty() else None
 
     def left_sibling(self, p: Position, k: type(Position.Node.Item.key) = None) -> Optional[Position]:
         """Returns the Position of the node to the left of p"""
@@ -537,7 +611,7 @@ class MultiWaySearchTree(Tree, MapBase):
         return self._size
 
     def __iter__(self) -> Iterator[Position.Node.Item]:
-        """Generate an iteration of the tree's elements."""
+        """Generate an inorder iteration of the tree's elements."""
         if not self.is_empty():
             return self._subtree_iter(self.root())
 
@@ -724,63 +798,126 @@ class MultiWaySearchTree(Tree, MapBase):
     def pop(self, k: type(Position.Node.Item.key),
             d: type(Position.Node.Item.value) = None) -> type(Position.Node.Item.value):
         """Returns self[k] and deletes the pair if present, otherwise it returns d."""
-        raise NotImplementedError
+        found, p, i = self._subtree_search(self.root(), k)
+        if found:
+            v = p.elements[i]
+            del self[k]
+            return v
+        else:
+            return d
 
     def popitem(self) -> Position.Node.Item:
         """Returns an arbitrary pair (k, v) and deletes it from the map. It throws an exception if the tree is empty."""
-        raise NotImplementedError
+        item = self.last().elements[-1]
+        k = item.key
+        if k is None:
+            raise Exception("Tree is empty")
+        del self[k]
+        return item
 
     def keys(self) -> Set[type(Position.Node.Item.key)]:
         """Returns a set-like view of all keys in the tree."""
-        raise NotImplementedError
+        s = set()
+        for item in self:
+            s.add(item.key)
+        return s
 
     def values(self) -> Set[type(Position.Node.Item.value)]:
         """Returns a set-like view of all values in the tree."""
-        raise NotImplementedError
+        s = set()
+        for item in self:
+            s.add(item.value)
+        return s
 
     def items(self) -> Set[Position.Node.Item]:
         """Returns a set-like view of all the (k, v) tuples in the tree."""
-        raise NotImplementedError
+        s = set()
+        for item in self:
+            s.add((item.key, item.value))
+        return s
 
     def __eq__(self, other) -> bool:
         """Returns True if the tree contains same pairs as other."""
-        raise NotImplementedError
+        if not isinstance(other, type(self)):
+            raise TypeError(f"other is not of type {type(self)}")
+        for s, o in zip(self, other):
+            if s.key != o.key or s.value != o.value:
+                return False
+        return True
 
     def __ne__(self, other) -> bool:
         """Returns True if the tree does not contain same pairs as other."""
-        raise NotImplementedError
+        return not self == other
 
     def update(self, other, **kwargs) -> None:
         """For each pairs (k, v) in other sets self[k] = v."""
-        raise NotImplementedError
+        if not isinstance(other, type(self)):
+            raise TypeError(f"other is not of type {type(self)}")
+        for item in other:
+            self[item.key] = item.value
 
     # -------------------------- ADT SORTED MAP INTERFACE METHODS --------------------------
 
     def find_min(self) -> Optional[Position.Node.Item]:
         """Returns the element with the smallest key."""
-        raise NotImplementedError
+        return self._subtree_min(self.root())[0].elements[0] if not self.is_empty() else None
 
     def find_max(self) -> Optional[Position.Node.Item]:
         """Returns the element with the greatest key."""
-        raise NotImplementedError
+        return self._subtree_max(self.root())[0].elements[-1] if not self.is_empty() else None
 
     def find_lt(self, k: type(Position.Node.Item.key)) -> Optional[Position.Node.Item]:
         """Returns the element with the largest key that is < k."""
-        raise NotImplementedError
+        if self.is_empty():
+            return None
+        found, p, i = self._subtree_search(self.root(), k)
+        return self._subtree_find_lt(p, k, i)[1]
 
     def find_le(self, k: type(Position.Node.Item.key)) -> Optional[Position.Node.Item]:
         """Returns the element with the largest key that is <= k."""
-        raise NotImplementedError
+        if self.is_empty():
+            return None
+        found, p, i = self._subtree_search(self.root(), k)
+        # If k is found, we need to search in the child of p to the left of k
+        if found:
+            return p.elements[i]
+        return self._subtree_find_lt(p, k, i)[1]
 
     def find_gt(self, k: type(Position.Node.Item.key)) -> Optional[Position.Node.Item]:
         """Returns the element with the smallest key that is > k."""
-        raise NotImplementedError
+        if self.is_empty():
+            return None
+        found, p, i = self._subtree_search(self.root(), k)
+        # If k is found, we need to search in the child of p to the right of k
+        if found:
+            i += 1
+        return self._subtree_find_gt(p, k, i)[1]
 
     def find_ge(self, k: type(Position.Node.Item.key)) -> Optional[Position.Node.Item]:
         """Returns the element with the smallest key that is >= k."""
-        raise NotImplementedError
+        if self.is_empty():
+            return None
+        found, p, i = self._subtree_search(self.root(), k)
+        if found:
+            return p.elements[i]
+        return self._subtree_find_gt(p, k, i)[1]
 
-    def find_range(self, start: type(Position.Node.Item.key),
-                   stop: type(Position.Node.Item.key)) -> Iterator[Position.Node.Item]:
-        """Returns all the elements with keys between start and stop."""
-        raise NotImplementedError
+    def find_range(self, start: type(Position.Node.Item.key) = None,
+                   stop: type(Position.Node.Item.key) = None) -> Iterator[Position.Node.Item]:
+        """Returns all the elements with (key, value) such that start <= key < stop."""
+        if not self.is_empty():
+            if start is None:
+                # If start is None, then the first item to yield is the first item of the tree
+                p = self.first()
+                item = p.elements[0]
+            else:
+                # Search for the smallest key >= start
+                found, p, i = self._subtree_search(self.root(), start)
+                if found:
+                    item = p.elements[i]
+                else:
+                    p, item = self._subtree_find_gt(p, start, i)
+            while p is not None and (stop is None or item.key < stop):
+                yield item
+                _, i = binary_search(p.keys(), item.key)
+                p, item = self._subtree_find_gt(p, item.key, i + 1)
