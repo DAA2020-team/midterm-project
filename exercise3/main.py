@@ -1,122 +1,19 @@
-from random import shuffle, seed
-
 from iso4217 import Currency as cur
 
 from data_structures.multi_way_search_tree import MultiWaySearchTree
 
+from exercise2.currency import Currency
 
 def main():
-    seed(2020)
-
     tree = MultiWaySearchTree()
 
-    tree[17] = 104
+    codes = [currency.code for currency in cur]
+    shuffle(codes)
 
-    root = tree.root()
+    currencies = [Currency(code) for code in codes]
 
-    print("*** Check root ***")
-    print(root.keys(), root.values())
-    print(root)
-    print(tree.num_children(root))
-
-    for child in tree.children(root):
-        print("Here")
-        print(child)
-
-    x = 16
-    print(f"*** Search {x} ***")
-    print(tree._subtree_search(tree.root(), x))
-
-    possible_keys = list(range(100))
-    shuffle(possible_keys)
-    for i in range(100):
-        x = possible_keys[i]
-
-        print(f"*** Insert {x} ***")
-        tree[x] = int(str(x) * 2)
-        # print(tree)
-
-    for i in range(43, 49):
-        del tree[i]
-
-    del tree[49]
-
-    for i in range(51, 53):
-        del tree[i]
-
-    print(tree)
-
-    del tree[54]
-    print(tree)
-
-    for i in range(57, 61):
-        del tree[i]
-
-    print(tree)
-
-    for i in range(63, 65):
-        del tree[i]
-
-    print(tree)
-
-    for i in range(67, 73):
-        print("Deleting " + str(i))
-        del tree[i]
-        print(tree)
-
-    del tree[50]
-    print(tree)
-
-    del tree[73]
-    print(tree)
-
-    del tree[61]
-    print(tree)
-
-    del tree[53]
-    print(tree)
-
-    del tree[62]
-    print(tree)
-
-    del tree[65]
-    print(tree)
-
-    for i in range(75, 81):
-        del tree[i]
-
-    print(tree)
-
-    del tree[55]
-    print(tree)
-
-    for i in range(100):
-        print(f"*** Deleting {i} ***")
-        try:
-            del tree[i]
-        except KeyError:
-            pass
-        print(tree)
-
-    """for i in range(10000):
-        tree[i] = int(str(i) * 2)
-
-    print(tree)
-
-    for i in range(10000):
-        del tree[i]"""
-
-    for code in [currency.code for currency in cur][:80]:
-        tree[code] = code + " value"
-    print(len(tree))
-    print(tree)
-
-    for i, item in enumerate(tree.find_range("GNF", "NZD")):
-        print(i + 1, item)
-
-    print(tree.find_gt("GNF"))
-
-    print("OK!")
+    for currency in currencies:
+        tree[currency._code] = currency
 
 
 if __name__ == '__main__':
