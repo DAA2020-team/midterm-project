@@ -45,7 +45,7 @@ class TreeMap(LinkedBinaryTree, MapBase):
             return self.element()._value
 
         def __repr__(self):
-            return '({0}, {1})'.format(self.element()._key, self.element()._value)
+            return '{0}'.format(self.element()._key)
 
     # ------------------------------- nonpublic utilities -------------------------------
     def _subtree_search(self, p, k):
@@ -78,13 +78,10 @@ class TreeMap(LinkedBinaryTree, MapBase):
         if self.is_empty():
             return ""
         self._validate(p)
-        string = ""
-        for p in self.breadthfirst():
-            string += " " + repr(p)
-        return string
-
+        return repr([key for key in self])
 
     # --------------------- public methods providing "positional" support ---------------------
+
     def first(self):
         """Return the first Position in the tree (or None if empty)."""
         return self._subtree_first_position(self.root()) if len(self) > 0 else None
