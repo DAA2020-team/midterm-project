@@ -48,7 +48,7 @@ The implementation of the ADT is in the `data_structures` folder, in the file [m
 
 ### Exercise 4
 
-1. Change directory to the root folder folder.
+1. Change directory to the root folder.
 2. Run `python exercise4/main.py` to test the implementation of the `change()` function.
     * There are some parameters to pass to the test function that can customize the test. In particular
         there is the `manual` parameter and if is set to `True`, the test will print more information and will proceed step
