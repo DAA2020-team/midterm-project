@@ -14,7 +14,7 @@ class DoubleHashingHashMap(HashMapBase):
 
     class _Item(MapBase._Item):
 
-        def __str__(self):
+        def __repr__(self):
             """
             Returns the string representation of the item.
             :return: string representation of the item
@@ -221,12 +221,12 @@ class DoubleHashingHashMap(HashMapBase):
         for k, v in other.items():
             self[k] = v
 
-    def __str__(self):
+    def __repr__(self):
         """
         Returns the string representation of the map.
         :return: string representation of the map
         """
-        return str(self.items())
+        return repr(self.items())
 
     def capacity(self):
         """

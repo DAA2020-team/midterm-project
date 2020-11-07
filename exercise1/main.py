@@ -4,9 +4,6 @@ from iso4217 import Currency as cur
 from random import seed
 
 
-seed(2020)
-
-
 def main():
     my_map = DoubleHashingHashMap()
 
@@ -109,11 +106,11 @@ def main():
     print("""Stupid test""")
     my_map = DoubleHashingHashMap()
     codes = [currency.code for currency in cur]
-    for code in codes[:codes.index("ARS") + 1]:
+    for code in codes:
         my_map[code] = code
     print(my_map.get_collisions())
-    del my_map["ARS"]
-    print(my_map.get_collisions())
+    for code in codes:
+        del my_map[code]
     print("Hello there")
 
 
