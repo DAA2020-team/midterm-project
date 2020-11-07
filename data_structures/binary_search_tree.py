@@ -31,6 +31,9 @@ class TreeMap(LinkedBinaryTree, MapBase):
         self._min = None
         self._max = None
 
+    def __repr__(self):
+        return self._subtree_repr(self.root())
+
     # ---------------------------- override Position class ----------------------------
     class Position(LinkedBinaryTree.Position):
         def key(self):
@@ -40,6 +43,9 @@ class TreeMap(LinkedBinaryTree, MapBase):
         def value(self):
             """Return value of map's key-value pair."""
             return self.element()._value
+
+        def __repr__(self):
+            return '({0}, {1})'.format(self.element()._key, self.element()._value)
 
     # ------------------------------- nonpublic utilities -------------------------------
     def _subtree_search(self, p, k):
@@ -67,6 +73,16 @@ class TreeMap(LinkedBinaryTree, MapBase):
         while self.right(walk) is not None:  # keep walking right
             walk = self.right(walk)
         return walk
+
+    def _subtree_repr(self, p):
+        if self.is_empty():
+            return ""
+        self._validate(p)
+        string = ""
+        for p in self.breadthfirst():
+            string += " " + repr(p)
+        return string
+
 
     # --------------------- public methods providing "positional" support ---------------------
     def first(self):

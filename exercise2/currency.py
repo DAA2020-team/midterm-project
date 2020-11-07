@@ -14,6 +14,9 @@ class Currency:
         self._denominations = AVLTreeMap()
         self._changes = DoubleHashingHashMap()
 
+    def __repr__(self):
+        return repr(self._code) + ":\n\tDenominations: " + repr(self._denominations) + "\n\tChanges: " + repr(self._changes)
+
     @staticmethod
     def _raise_ex_if_code_not_valid(c):
         if utils.validate_iso_code(c) is False:
@@ -21,7 +24,7 @@ class Currency:
 
     @staticmethod
     def _raise_ex_if_value_not_int_or_float(v):
-        if v <= 0 or (type(v) is not float and type(v) is not int):
+        if type(v) is not float and type(v) is not int:
             raise ValueError("Value must be a float or integer and greater than 0, " + str(type(v)) + " was provided")
 
     def _raise_ex_if_den_empty(self):
@@ -179,8 +182,8 @@ class Currency:
         :raises ValueError: if the currency code is already present, if the change is not valid or the currency code
         does not follow the ISO4217 format
         """
-        if currency_code == self._code and change != 1:
-            raise ValueError("Same currency code implies change equals to 1")
+        if currency_code == self._code:
+            raise ValueError("Cannot add a change of the same currency.")
         self._raise_ex_if_value_not_int_or_float(change)
         self._raise_ex_if_code_not_valid(currency_code)
 
@@ -216,8 +219,8 @@ class Currency:
         :return: None
         :raises ValueError: if the change is not valid or if the code does not follow the ISO4217 format
         """
-        if currency_code == self._code and change != 1:
-            raise ValueError("Same currency code implies change equals to 1")
+        if currency_code == self._code:
+            raise ValueError("Cannot update a change of the same currency.")
         self._raise_ex_if_value_not_int_or_float(change)
         self._raise_ex_if_code_not_valid(currency_code)
         self._changes[currency_code] = change
@@ -235,15 +238,24 @@ class Currency:
 
     def deep_copy(self):
         """
-        Create a new object Currency whose attributes are equivalent but not
+        Create a new object Currency whose attributes are equivalent and not
         identical to the ones of the current currency.
         :return: the copied object whose attribute are equivalent but not identical to the original object
         """
-        c = Currency(self._code)
+
+        # workaround, since strings in Python are immutable and two identical strings refers to the same memory area
+        temp_code = (self._code + '.')[:-1]
+        c = Currency(temp_code)
         for e in self._denominations.breadthfirst():
             c._denominations[e.key()] = e.value()
-        # there are only float or int in the map, so this copy is fine and does not require recursive deep copies
-        c._changes._table = self._changes._table[:]
+        # there are only float or int in the map as values and string as keys, so this copy is sufficient and does
+        # not require recursive deep copies
+        for i, e in enumerate(self._changes._table):
+            if isinstance(e, DoubleHashingHashMap._Item):
+                c._changes._table[i] = DoubleHashingHashMap._Item((e._key + '.')[:-1], e._value)
+            else:
+                c._changes._table[i] = e
+
         c._changes._n = self._changes._n
 
         # a copy needs to be equivalent, this two values are random during the initialization
