@@ -15,7 +15,7 @@ class Currency:
         self._changes = DoubleHashingHashMap()
 
     def __repr__(self):
-        return str(self._code + ":\n\tDenominations: " + str(self._denominations) + "\n\tChanges: " + str(self._changes))
+        return repr(self._code) + ":\n\tDenominations: " + repr(self._denominations) + "\n\tChanges: " + repr(self._changes)
 
     @staticmethod
     def _raise_ex_if_code_not_valid(c):
