@@ -54,7 +54,7 @@ The implementation of the ADT is in the `data_structures` folder, in the file [m
         there is the `manual` parameter and if is set to `True`, the test will print more information and will proceed step
         by step, waiting for a enter key press for each one.
         
-The implementation of the `change()` function is in the [exercise4/main.py](https://github.com/DAA2020-team/midterm-project/blob/master/exercise4/main.py)
+The implementation of the `change()` function is in the file [exercise4/main.py](https://github.com/DAA2020-team/midterm-project/blob/master/exercise4/main.py)
    
 ## Other resources
 In the `resources` folder there is the [primes.bin](https://github.com/DAA2020-team/midterm-project/blob/master/resources/primes.bin) file, which contains prime numbers used by the DoubleHashingHashMap.
